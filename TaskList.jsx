@@ -1,4 +1,4 @@
-```jsx
+
 <div className="flex gap-2 mb-4">
 <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Task title" className="flex-1 p-2 rounded" />
 <select value={priority} onChange={e=>setPriority(e.target.value)} className="p-2 rounded ghost">
@@ -43,4 +43,3 @@
 
 
 function computePercent(task){ const subs = task.subtasks||[]; if(!subs.length) return task.manualPercent||0; const done = subs.filter(s=>s.done).length; return Math.round((done/subs.length)*100) }
-```
