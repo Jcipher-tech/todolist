@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ToDo • JCipher</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="app-header">
+      <div class="brand">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+        <h1>My To-Do</h1>
+      </div>
+      <p class="subtitle">Cute. Simple. Productive.</p>
+    </header>
+
+    <main class="main-card">
+      <form id="taskForm" class="task-form" autocomplete="off">
+        <input id="taskInput" name="task" type="text" placeholder="Add a new task..." />
+        <button id="addBtn" aria-label="Add task">＋</button>
+      </form>
+
+      <section class="lists">
+        <div class="list active-list">
+          <h2>Tasks</h2>
+          <ul id="taskList" class="task-list" aria-label="Task list"></ul>
+        </div>
+
+        <div class="list archive-list">
+          <h2>Done</h2>
+          <ul id="doneList" class="task-list" aria-label="Completed tasks"></ul>
+        </div>
+      </section>
+
+      <div class="controls">
+        <div class="left-info" id="counts">0 tasks</div>
+        <div class="right-actions">
+          <button id="clearCompleted" class="text-btn">Clear done</button>
+          <button id="clearAll" class="text-btn danger">Clear all</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">Built with ♥ by Jagruti — <span id="version">v1.1</span></footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
