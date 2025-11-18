@@ -1,4 +1,4 @@
-```css
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -38,5 +38,3 @@ body{background:linear-gradient(180deg,var(--bg),#071028);color:#e6eef8;font-fam
 @media(max-width:768px){ .container{padding:12px} }
 ```
 
-
----
