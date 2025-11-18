@@ -1,4 +1,4 @@
-```jsx
+
 import React from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -23,4 +23,3 @@ return (
 
 
 function computePercent(task){ const subs = task.subtasks||[]; if(!subs.length) return task.manualPercent||0; const done = subs.filter(s=>s.done).length; return Math.round((done/subs.length)*100) }
-```
