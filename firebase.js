@@ -1,4 +1,4 @@
-```js
+
 // IMPORTANT: Replace with your Firebase config
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
@@ -22,4 +22,5 @@ export const db = getFirestore(app)
 
 
 export default app
+
 ```
