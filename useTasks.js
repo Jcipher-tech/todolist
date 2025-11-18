@@ -1,4 +1,4 @@
-```jsx
+
 import { Auth } from './components/Auth'
 import { useTasks } from './hooks/useTasks'
 
@@ -41,4 +41,4 @@ return (
 </div>
 )
 }
-```
+
