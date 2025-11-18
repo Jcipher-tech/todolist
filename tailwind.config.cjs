@@ -1,4 +1,4 @@
-```js
+
 module.exports = {
 content: ['./index.html', './src/**/*.{js,jsx}'],
 theme: {
@@ -11,4 +11,3 @@ accent: '#06b6d4'
 },
 plugins: []
 }
-```
