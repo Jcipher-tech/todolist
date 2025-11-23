@@ -1,27 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced To-Do List</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ToDo • JCipher (Animated)</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body data-theme="light"> <!-- default light, change to "dark" to test dark mode -->
+  <!-- Animated layers (only visible in light theme) -->
+  <div id="anim-layer">
+    <canvas id="particles-canvas" aria-hidden="true"></canvas>
 
-    <div class="theme-toggle">
-        <button id="themeBtn">🌙</button>
+    <svg id="blobs" viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true">
+      <!-- Two morphing SVG blobs -->
+      <g>
+        <path id="blobA" d="" fill="url(#g1)" opacity="0.22"></path>
+        <path id="blobB" d="" fill="url(#g2)" opacity="0.18"></path>
+      </g>
+      <defs>
+        <linearGradient id="g1" x1="0" x2="1">
+          <stop offset="0" stop-color="#ff7eb3"/>
+          <stop offset="1" stop-color="#65d6ff"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="0" x2="1">
+          <stop offset="0" stop-color="#ffd86b"/>
+          <stop offset="1" stop-color="#a0ffb4"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <div id="floating-icons" aria-hidden="true">
+      <div class="icon">✏️</div>
+      <div class="icon">🎧</div>
+      <div class="icon">🔔</div>
+      <div class="icon">⚙️</div>
     </div>
 
-    <h1 class="title">My To-Do List</h1>
-
-    <div class="input-container">
-        <input type="text" id="taskInput" placeholder="Enter a task...">
-        <button id="addBtn">+</button>
-        <button id="voiceBtn">🎤</button>
+    <div id="bubbles" aria-hidden="true">
+      <!-- decorative circles -->
+      <div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div>
+      <div class="bubble b4"></div><div class="bubble b5"></div>
     </div>
 
-    <ul id="taskList" class="task-list"></ul>
+    <!-- gentle waves -->
+    <svg id="waves" viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true">
+      <path id="wave1" d="" opacity="0.14" fill="#ffffff"></path>
+      <path id="wave2" d="" opacity="0.08" fill="#ffffff"></path>
+    </svg>
+  </div>
 
-    <script src="script.js"></script>
+  <!-- App container -->
+  <div class="app" id="app">
+    <header class="app-header">
+      <div class="brand">
+        <h1>My To-Do</h1>
+        <small class="subtitle">Cute. Simple. Productive.</small>
+      </div>
+      <div class="controls-right">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">☀️</button>
+      </div>
+    </header>
+
+    <main class="main-card">
+      <form id="taskForm" class="task-form" autocomplete="off">
+        <input id="taskInput" name="task" type="text" placeholder="Add a new task..." />
+        <button id="addBtn" aria-label="Add task">＋</button>
+        <button id="voiceBtn" type="button" title="Add by voice">🎤</button>
+      </form>
+
+      <section class="lists">
+        <div class="list active-list">
+          <h2>Tasks</h2>
+          <ul id="taskList" class="task-list" aria-label="Task list"></ul>
+        </div>
+
+        <div class="list archive-list">
+          <h2>Done</h2>
+          <ul id="doneList" class="task-list" aria-label="Completed tasks"></ul>
+        </div>
+      </section>
+
+      <div class="controls">
+        <div class="left-info" id="counts">0 tasks</div>
+        <div class="right-actions">
+          <button id="clearCompleted" class="text-btn">Clear done</button>
+          <button id="clearAll" class="text-btn danger">Clear all</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">Built with ♥ by Jagruti — <span id="version">v2.0</span></footer>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
