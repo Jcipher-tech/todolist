@@ -1,233 +1,161 @@
-/*
- Advanced animations integrated.
- - Particles & confetti (canvas)
- - Morphing blobs (SVG)
- - Floating icons & bubbles (CSS)
- - Waves (SVG) 
- Animations are ENABLED only when body/data-theme === "light"
+/* Neon Futuristic ToDo
+   - Animated grid canvas (moving perspective grid)
+   - Particle float + confetti
+   - Tasks: add/edit/delete/drag & drop
+   - LocalStorage persistence
+   - Mini-mode (reduced motion)
 */
 
-const LS_THEME = 'jc_theme_v2';
-const themeToggle = document.getElementById('themeToggle');
-const bodyEl = document.body;
-const animLayer = document.getElementById('anim-layer');
-const canvas = document.getElementById('particles-canvas');
-const blobA = document.getElementById('blobA');
-const blobB = document.getElementById('blobB');
-const wave1 = document.getElementById('wave1');
-const wave2 = document.getElementById('wave2');
+/* ---------- Canvas background: grid + particles ---------- */
+const gridCanvas = document.getElementById('gridCanvas');
+const particleCanvas = document.getElementById('particleCanvas');
+const gc = gridCanvas.getContext('2d');
+const pc = particleCanvas.getContext('2d');
 
-let theme = localStorage.getItem(LS_THEME) || 'light';
-document.documentElement.setAttribute('data-theme', theme);
-bodyEl.setAttribute('data-theme', theme);
-updateThemeIcon();
+let DPR = Math.max(1, window.devicePixelRatio || 1);
 
-// ---------- Theme Toggle ----------
-themeToggle.addEventListener('click', () => {
-  theme = (theme === 'light') ? 'dark' : 'light';
-  localStorage.setItem(LS_THEME, theme);
-  document.documentElement.setAttribute('data-theme', theme);
-  bodyEl.setAttribute('data-theme', theme);
-  updateThemeIcon();
-  // Start/stop animations based on theme
-  if (theme === 'light') startAnimations(); else stopAnimations();
-});
-function updateThemeIcon(){ themeToggle.textContent = theme === 'light' ? '☀️' : '🌙' }
-
-// ---------- Animation control ----------
-let particlesEngine = null;
-function startAnimations(){
-  animLayer.style.opacity = '1';
-  if (!particlesEngine) particlesEngine = new ParticlesEngine(canvas);
-  particlesEngine.start();
-  startBlobMorph();
-  startWaves();
+function resizeCanvases(){
+  DPR = Math.max(1, window.devicePixelRatio || 1);
+  [gridCanvas, particleCanvas].forEach(c=>{
+    c.width = Math.floor(c.clientWidth * DPR);
+    c.height = Math.floor(c.clientHeight * DPR);
+    c.style.width = c.clientWidth + 'px';
+    c.style.height = c.clientHeight + 'px';
+  });
+  gc.setTransform(DPR,0,0,DPR,0,0);
+  pc.setTransform(DPR,0,0,DPR,0,0);
 }
-function stopAnimations(){
-  animLayer.style.opacity = '0';
-  if (particlesEngine){ particlesEngine.stop(); particlesEngine = null; }
-  stopBlobMorph();
-  stopWaves();
+window.addEventListener('resize', resizeCanvases);
+resizeCanvases();
+
+/* grid animation */
+let gridT = 0;
+function drawGrid(t){
+  gc.clearRect(0,0,gridCanvas.width/DPR, gridCanvas.height/DPR);
+  const w = gridCanvas.width/DPR, h = gridCanvas.height/DPR;
+  gridT += 0.0025;
+  const offset = Math.sin(gridT)*24;
+  const step = 48;
+  gc.save();
+  gc.translate(0, h*0.06);
+  // vertical lines
+  gc.lineWidth = 1;
+  for(let x = -step*4; x < w + step*4; x += step){
+    const x2 = x + (Math.sin((x*0.02)+gridT*4) * 6) + offset*0.2;
+    gc.beginPath();
+    gc.strokeStyle = 'rgba(120,120,255,0.03)';
+    gc.moveTo(x2, 0);
+    gc.lineTo(x2, h);
+    gc.stroke();
+  }
+  // horizontal perspective lines (curved)
+  for(let i=0;i<14;i++){
+    const y = h - i*40 + Math.sin(gridT + i*0.6)*8;
+    const alpha = 0.08 * (1 - i/14);
+    gc.beginPath();
+    gc.strokeStyle = `rgba(120,140,255,${alpha})`;
+    gc.moveTo(-40, y);
+    gc.quadraticCurveTo(w/2 + Math.sin(i+gridT)*40, y - 24 - i*2, w+40, y);
+    gc.stroke();
+  }
+  gc.restore();
 }
 
-// ---------- initial start if light ----------
-if (theme === 'light') startAnimations();
-
-// ------------------ Particles & Confetti Engine (canvas) ------------------
-class ParticlesEngine {
-  constructor(canvasEl){
-    this.canvas = canvasEl;
-    this.ctx = this.canvas.getContext('2d');
-    this.w = 0; this.h = 0; this.particles = []; this.running = false;
-    this.confettiPieces = [];
-    window.addEventListener('resize', () => this.resize());
-    this.resize();
-    this.last = 0; this.raf = null;
-  }
-  resize(){
-    const ratio = window.devicePixelRatio || 1;
-    this.w = this.canvas.width = Math.floor(this.canvas.clientWidth * ratio);
-    this.h = this.canvas.height = Math.floor(this.canvas.clientHeight * ratio);
-    this.ctx.scale(ratio, ratio);
-  }
-  start(){
-    if (this.running) return;
-    this.running = true;
-    this.spawnBackgroundParticles();
-    this.raf = requestAnimationFrame((t)=>this.loop(t));
-  }
-  stop(){
-    this.running = false;
-    cancelAnimationFrame(this.raf);
-    this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-    this.particles = []; this.confettiPieces = [];
-  }
-  spawnBackgroundParticles(){
-    this.particles = [];
-    for(let i=0;i<30;i++){
-      this.particles.push(this._createParticle());
-    }
-  }
-  _createParticle(){
-    return {
-      x: Math.random()*window.innerWidth,
-      y: Math.random()*window.innerHeight,
-      r: 1 + Math.random()*3,
+/* particles (glowing motes) */
+let motes = [];
+function spawnMotes(){
+  motes = [];
+  const count = Math.max(18, Math.floor((gridCanvas.width/DPR)/60));
+  for(let i=0;i<count;i++){
+    motes.push({
+      x: Math.random()*gridCanvas.width/DPR,
+      y: Math.random()*gridCanvas.height/DPR,
+      r: 0.8 + Math.random()*2.4,
       vx: (Math.random()-0.5)*0.3,
-      vy: -0.15 - Math.random()*0.3,
-      alpha: 0.15 + Math.random()*0.25,
-      hue: 180 + Math.random()*80
-    }
-  }
-  loop(t){
-    if (!this.running) return;
-    const dt = (t - (this.last||t))/16;
-    this.last = t;
-    this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-    // particles
-    for(let p of this.particles){
-      p.x += p.vx*dt;
-      p.y += p.vy*dt;
-      if (p.y < -20) { p.y = window.innerHeight + 20; p.x = Math.random()*window.innerWidth; }
-      this.ctx.beginPath();
-      this.ctx.fillStyle = `hsla(${p.hue},70%,65%,${p.alpha})`;
-      this.ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      this.ctx.fill();
-    }
-    // confetti pieces
-    for (let i = this.confettiPieces.length-1;i>=0;i--){
-      const c = this.confettiPieces[i];
-      c.x += c.vx*dt; c.y += c.vy*dt; c.vy += 0.02*dt;
-      c.rot += c.spin*dt;
-      this.ctx.save();
-      this.ctx.translate(c.x, c.y);
-      this.ctx.rotate(c.rot);
-      this.ctx.fillStyle = c.color;
-      this.ctx.fillRect(-c.w/2, -c.h/2, c.w, c.h);
-      this.ctx.restore();
-      if (c.y > window.innerHeight + 40) this.confettiPieces.splice(i,1);
-    }
-
-    this.raf = requestAnimationFrame((tt)=>this.loop(tt));
-  }
-
-  // small confetti burst (called when adding task)
-  burst(x, y){
-    for(let i=0;i<25;i++){
-      this.confettiPieces.push({
-        x: x + (Math.random()-0.5)*30,
-        y: y + (Math.random()-0.5)*10,
-        vx: (Math.random()-0.5)*6,
-        vy: -6 - Math.random()*6,
-        w: 6 + Math.random()*8,
-        h: 4 + Math.random()*6,
-        rot: Math.random()*6,
-        spin: (Math.random()-0.5)*0.2,
-        color: ['#FF7EB3','#65D6FF','#FFD86B','#A0FFB4','#A78BFA'][Math.floor(Math.random()*5)]
-      });
-    }
+      vy: (Math.random()-0.5)*0.2,
+      hue: 170 + Math.random()*160,
+      alpha: 0.08 + Math.random()*0.18
+    });
   }
 }
 
-// ------------------- Blob Morph (simple) -------------------
-let blobTimer = null;
-function startBlobMorph(){
-  // precompute simple morphing by changing path with sin waves
-  let t0 = 0;
-  function tick(){
-    t0 += 0.012;
-    const w = 800, h = 600;
-    const m = (a,b,c) => (a + Math.sin(t0*b + c)*30);
-    // create two pseudo-random blob paths (not perfect morphing but smooth)
-    blobA.setAttribute('d', blobPath(w*0.4, h*0.35, 220 + Math.sin(t0)*18, t0*0.9));
-    blobB.setAttribute('d', blobPath(w*0.7, h*0.55, 160 + Math.cos(t0*1.1)*16, t0*1.2));
-    blobTimer = requestAnimationFrame(tick);
+/* confetti pieces */
+let confetti = [];
+
+/* animation loop */
+let animRunning = true;
+let lastTS = 0;
+function loop(ts){
+  if (!animRunning) return;
+  const dt = (ts - lastTS) / 16.666; lastTS = ts;
+  // grid
+  drawGrid(ts);
+  // motes
+  pc.clearRect(0,0,particleCanvas.width/DPR, particleCanvas.height/DPR);
+  for(let m of motes){
+    m.x += m.vx * dt;
+    m.y += m.vy * dt;
+    if (m.x < -20) m.x = particleCanvas.width/DPR + 20;
+    if (m.x > particleCanvas.width/DPR + 20) m.x = -20;
+    if (m.y < -20) m.y = particleCanvas.height/DPR + 20;
+    if (m.y > particleCanvas.height/DPR + 20) m.y = -20;
+    const g = pc.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r*8);
+    g.addColorStop(0, `hsla(${m.hue}, 90%, 70%, ${m.alpha*1.1})`);
+    g.addColorStop(1, `rgba(0,0,0,0)`);
+    pc.beginPath();
+    pc.fillStyle = g;
+    pc.arc(m.x, m.y, m.r*8, 0, Math.PI*2);
+    pc.fill();
   }
-  tick();
-}
-function stopBlobMorph(){ cancelAnimationFrame(blobTimer); }
-function blobPath(cx, cy, r, t){
-  // build an organic 8-point path
-  const pts = [];
-  for (let i=0;i<8;i++){
-    const ang = (i/8)*Math.PI*2;
-    const rr = r + Math.sin(t + i)*22 + Math.cos(t*1.3 + i*0.7)*12;
-    const x = cx + Math.cos(ang)*rr;
-    const y = cy + Math.sin(ang)*rr*0.76;
-    pts.push([x,y]);
+  // confetti physics
+  for(let i=confetti.length-1;i>=0;i--){
+    const c = confetti[i];
+    c.x += c.vx * dt; c.y += c.vy * dt; c.vy += 0.12 * dt; c.rot += c.spin * dt;
+    pc.save();
+    pc.translate(c.x, c.y); pc.rotate(c.rot);
+    pc.fillStyle = c.color;
+    pc.fillRect(-c.w/2, -c.h/2, c.w, c.h);
+    pc.restore();
+    if (c.y > particleCanvas.height/DPR + 60) confetti.splice(i,1);
   }
-  // simple smooth path using bezier approximations
-  let d = `M ${pts[0][0]} ${pts[0][1]}`;
-  for (let i=0;i<pts.length;i++){
-    const p1 = pts[i];
-    const p2 = pts[(i+1)%pts.length];
-    const cx1 = p1[0] + (p2[0]-pts[(i-1+pts.length)%pts.length][0])*0.25;
-    const cy1 = p1[1] + (p2[1]-pts[(i-1+pts.length)%pts.length][1])*0.25;
-    const cx2 = p2[0] - (pts[(i+2)%pts.length][0]-p1[0])*0.25;
-    const cy2 = p2[1] - (pts[(i+2)%pts.length][1]-p1[1])*0.25;
-    d += ` C ${cx1} ${cy1}, ${cx2} ${cy2}, ${p2[0]} ${p2[1]}`;
-  }
-  return d;
+  requestAnimationFrame(loop);
 }
 
-// ------------------- Waves (subtle) -------------------
-let wavesTimer = null;
-function startWaves(){
-  let t = 0;
-  function tick(){
-    t += 0.03;
-    const w = window.innerWidth;
-    const h1 = 40 + Math.sin(t)*6;
-    const h2 = 24 + Math.cos(t*1.2)*5;
-    wave1.setAttribute('d', wavePath(w, 120, h1, 0.3));
-    wave2.setAttribute('d', wavePath(w, 80, h2, 0.6));
-    wavesTimer = requestAnimationFrame(tick);
-  }
-  tick();
-}
-function stopWaves(){ cancelAnimationFrame(wavesTimer); }
-function wavePath(width, baseY, amp, phase){
-  const hw = width;
-  let d = `M 0 ${baseY}`;
-  const segments = 6;
-  for (let i=0;i<=segments;i++){
-    const x = (i/segments)*hw;
-    const y = baseY + Math.sin((i/segments + phase)*Math.PI*2)*amp;
-    d += ` L ${x} ${y}`;
-  }
-  d += ` L ${hw} 250 L 0 250 Z`;
-  return d;
-}
+/* start background anim */
+spawnMotes();
+requestAnimationFrame(loop);
 
-// ---------- small helpers for confetti on add ----------
-function triggerConfettiAtCenter(){
-  if (particlesEngine) {
-    const rect = document.getElementById('addBtn').getBoundingClientRect();
-    particlesEngine.burst(rect.left + rect.width/2, rect.top + rect.height/2);
+/* confetti burst */
+function confettiBurst(x,y){
+  for(let i=0;i<28;i++){
+    confetti.push({
+      x: x + (Math.random()-0.5)*30,
+      y: y + (Math.random()-0.5)*10,
+      vx: (Math.random()-0.5)*6,
+      vy: -6 - Math.random()*6,
+      w: 6 + Math.random()*8,
+      h: 4 + Math.random()*6,
+      rot: Math.random()*6,
+      spin: (Math.random()-0.5)*0.2,
+      color: ['#00ffd2','#7a00ff','#ff4d6d','#66e0ff','#a78bfa'][Math.floor(Math.random()*5)]
+    });
   }
 }
 
-// --------------------------- App logic (tasks) ---------------------------
+/* Toggle mini-mode (reduced motion) */
+let miniMode = false;
+const miniModeBtn = document.getElementById('miniModeBtn');
+miniModeBtn.addEventListener('click', ()=> {
+  miniMode = !miniMode;
+  if (miniMode){
+    motes = []; confetti = []; animRunning = false; pc.clearRect(0,0,particleCanvas.width, particleCanvas.height); gc.clearRect(0,0,gridCanvas.width, gridCanvas.height);
+    miniModeBtn.style.opacity = '0.6';
+  } else {
+    spawnMotes(); animRunning = true; lastTS = performance.now(); requestAnimationFrame(loop); miniModeBtn.style.opacity = '1';
+  }
+});
+
+/* ---------- App logic (tasks) ---------- */
 const taskForm = document.getElementById('taskForm');
 const taskInput = document.getElementById('taskInput');
 const taskList = document.getElementById('taskList');
@@ -236,103 +164,145 @@ const counts = document.getElementById('counts');
 const clearCompleted = document.getElementById('clearCompleted');
 const clearAll = document.getElementById('clearAll');
 const addBtn = document.getElementById('addBtn');
-const voiceBtn = document.getElementById('voiceBtn');
+const floatAdd = document.getElementById('floatAdd');
 
-const LS_KEYS = { tasks: 'jc_tasks_v2', done: 'jc_done_v2' };
-let tasks = []; let done = [];
-let dragSrcEl = null;
+const LS_TASKS = 'jc_neon_tasks_v1';
+const LS_DONE = 'jc_neon_done_v1';
 
-document.addEventListener('DOMContentLoaded', initApp);
-function initApp(){
-  loadFromStorage();
-  renderAll();
-  bindEvents();
-}
+let tasks = JSON.parse(localStorage.getItem(LS_TASKS) || '[]');
+let done = JSON.parse(localStorage.getItem(LS_DONE) || '[]');
 
-// Storage
-function saveToStorage(){ localStorage.setItem(LS_KEYS.tasks, JSON.stringify(tasks)); localStorage.setItem(LS_KEYS.done, JSON.stringify(done)); }
-function loadFromStorage(){ tasks = JSON.parse(localStorage.getItem(LS_KEYS.tasks) || '[]'); done = JSON.parse(localStorage.getItem(LS_KEYS.done) || '[]'); }
+function saveAll(){ localStorage.setItem(LS_TASKS, JSON.stringify(tasks)); localStorage.setItem(LS_DONE, JSON.stringify(done)); }
+function loadAll(){ tasks = JSON.parse(localStorage.getItem(LS_TASKS) || '[]'); done = JSON.parse(localStorage.getItem(LS_DONE) || '[]'); }
 
-// UI rendering
 function renderAll(){
   taskList.innerHTML = ''; doneList.innerHTML = '';
   tasks.forEach((t,i)=> taskList.appendChild(createTaskEl(t,i,false)));
   done.forEach((d,i)=> doneList.appendChild(createTaskEl(d,i,true)));
   updateCounts();
 }
-function createTaskEl(taskObj,index,isDone=false){
+function createTaskEl(taskObj, index, isDone=false){
   const li = document.createElement('li');
   li.className = 'task-item';
   li.draggable = !isDone;
   li.dataset.index = index;
 
-  const handle = document.createElement('div'); handle.className='handle'; handle.innerHTML='☰';
-  const text = document.createElement('div'); text.className='task-text'; text.textContent = taskObj.text; text.tabIndex=0;
-  const actions = document.createElement('div'); actions.className='actions';
-  const completeBtn = document.createElement('button'); completeBtn.className='complete-btn text-btn'; completeBtn.innerText = isDone ? '↺' : '✓';
-  const delBtn = document.createElement('button'); delBtn.className='text-btn danger'; delBtn.innerText='Delete';
-  const editBtn = document.createElement('button'); editBtn.className='text-btn'; editBtn.innerText='Edit';
+  const handle = document.createElement('div'); handle.className='handle'; handle.textContent = '≡';
+  const txt = document.createElement('div'); txt.className='task-text'; txt.textContent = taskObj.text;
+  const actions = document.createElement('div'); actions.className='task-actions';
+  const btnDone = document.createElement('button'); btnDone.className='text-btn'; btnDone.textContent = isDone ? '↺' : '✓';
+  const btnEdit = document.createElement('button'); btnEdit.className='text-btn'; btnEdit.textContent='Edit';
+  const btnDel  = document.createElement('button'); btnDel.className='text-btn danger'; btnDel.textContent='Delete';
 
-  actions.appendChild(completeBtn); actions.appendChild(editBtn); actions.appendChild(delBtn);
-  li.appendChild(handle); li.appendChild(text); li.appendChild(actions);
+  actions.appendChild(btnDone); actions.appendChild(btnEdit); actions.appendChild(btnDel);
+  li.appendChild(handle); li.appendChild(txt); li.appendChild(actions);
   if (isDone) li.classList.add('completed');
 
   // edit
-  editBtn.addEventListener('click', ()=> {
-    const newText = prompt('Edit task', taskObj.text);
-    if (newText && newText.trim()){ taskObj.text = newText.trim(); persistAndRender(); }
+  btnEdit.addEventListener('click', ()=> {
+    const val = prompt('Edit task', taskObj.text);
+    if (val && val.trim()){ taskObj.text = val.trim(); saveAll(); renderAll(); }
   });
 
-  // complete / move back
-  completeBtn.addEventListener('click', ()=> {
+  // done / move back
+  btnDone.addEventListener('click', ()=> {
     if (isDone){ const moved = done.splice(index,1)[0]; tasks.unshift(moved); } 
     else { const moved = tasks.splice(index,1)[0]; done.unshift(moved); }
-    persistAndRender();
+    saveAll(); renderAll();
   });
 
   // delete
-  delBtn.addEventListener('click', ()=> {
-    li.style.transition='transform .22s ease, opacity .22s';
-    li.style.transform='translateX(18px) scale(.98)'; li.style.opacity='0';
-    setTimeout(()=>{ if (isDone) done.splice(index,1); else tasks.splice(index,1); persistAndRender(); },220);
+  btnDel.addEventListener('click', ()=> {
+    li.style.transition = 'transform .22s ease, opacity .22s';
+    li.style.transform = 'translateX(20px) scale(.98)';
+    li.style.opacity = '0';
+    setTimeout(()=> {
+      if (isDone) done.splice(index,1); else tasks.splice(index,1);
+      saveAll(); renderAll();
+    },220);
   });
 
-  // drag (active tasks only)
+  // drag events for active tasks
   if (!isDone){
-    li.addEventListener('dragstart', (e)=>{ dragSrcEl = li; li.classList.add('dragging'); try{ e.dataTransfer.setData('text/plain', index);}catch(e){} });
-    li.addEventListener('dragend', ()=>{ li.classList.remove('dragging'); });
-    li.addEventListener('dragover', (e)=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; });
-    li.addEventListener('drop', (e)=>{ e.preventDefault(); if (!dragSrcEl || dragSrcEl===li) return; const src = Number(dragSrcEl.dataset.index); const dst = Number(li.dataset.index); const [m] = tasks.splice(src,1); tasks.splice(dst,0,m); persistAndRender(); });
+    li.addEventListener('dragstart', (e)=> { dragSrc = li; li.classList.add('dragging'); try{ e.dataTransfer.setData('text/plain', index);}catch(e){} });
+    li.addEventListener('dragend', ()=> { li.classList.remove('dragging'); });
+    li.addEventListener('dragover', (e)=> { e.preventDefault(); e.dataTransfer.dropEffect='move'; });
+    li.addEventListener('drop', (e)=> { e.preventDefault(); if (!dragSrc || dragSrc===li) return; const src = Number(dragSrc.dataset.index), dst = Number(li.dataset.index); const [m] = tasks.splice(src,1); tasks.splice(dst,0,m); saveAll(); renderAll(); });
   }
 
   return li;
 }
 
-function bindEvents(){
-  taskForm.addEventListener('submit',(e)=>{ e.preventDefault(); const txt = taskInput.value.trim(); if(!txt) return; tasks.unshift({text:txt,created:Date.now()}); taskInput.value=''; persistAndRender(); triggerConfettiAtCenter(); });
-  clearCompleted.addEventListener('click', ()=>{ if(!done.length) return alert('No completed tasks.'); if(!confirm('Clear all completed?')) return; done=[]; persistAndRender(); });
-  clearAll.addEventListener('click', ()=>{ if(!tasks.length && !done.length) return; if(!confirm('Clear everything?')) return; tasks=[]; done=[]; persistAndRender(); });
-  // voice
-  voiceBtn.addEventListener('click', ()=> {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) return alert('Speech recognition not supported in this browser.');
-    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const r = new Rec(); r.lang = 'en-IN'; r.interimResults = false; r.maxAlternatives = 1;
-    r.start();
-    r.onresult = (ev)=>{ const t = ev.results[0][0].transcript; taskInput.value = t; };
-    r.onerror = ()=>{};
-  });
-}
+let dragSrc = null;
 
-// persistence + render
-function persistAndRender(){ saveToStorage(); renderAll(); updateCounts(); }
-function updateCounts(){ const total = tasks.length + done.length; counts.textContent = `${tasks.length} tasks • ${done.length} done • ${total} total`; }
-
-// -------------------- wire confetti on programmatic add (helper) --------------------
-// if particlesEngine already created, burst is called in triggerConfettiAtCenter()
-
-// -------------------- ensure animations resize properly --------------------
-window.addEventListener('resize', ()=> {
-  if (particlesEngine) particlesEngine.resize();
+/* events */
+taskForm.addEventListener('submit', (e)=> {
+  e.preventDefault();
+  const txt = taskInput.value.trim();
+  if (!txt) return;
+  tasks.unshift({ text: txt, created: Date.now() });
+  taskInput.value = '';
+  saveAll(); renderAll();
+  // confetti at add button location
+  const r = addBtn.getBoundingClientRect();
+  confettiBurst(r.left + r.width/2, r.top + r.height/2);
 });
 
-// that's it for animations + app
+floatAdd.addEventListener('click', ()=> { taskInput.focus(); taskInput.classList.add('pulse-focus'); setTimeout(()=>taskInput.classList.remove('pulse-focus'),800); });
+
+clearCompleted.addEventListener('click', ()=> {
+  if (!done.length) return alert('No completed tasks to clear.');
+  if (!confirm('Clear all completed tasks?')) return;
+  done = []; saveAll(); renderAll();
+});
+clearAll.addEventListener('click', ()=> {
+  if (!tasks.length && !done.length) return;
+  if (!confirm('Clear all tasks?')) return;
+  tasks = []; done = []; saveAll(); renderAll();
+});
+
+/* counts */
+function updateCounts(){
+  const total = tasks.length + done.length;
+  counts.textContent = `${tasks.length} tasks • ${done.length} done • ${total} total`;
+}
+
+/* load & init */
+loadAll();
+renderAll();
+
+/* confetti helper available globally */
+window.confettiBurst = confettiBurst;
+
+/* ---------- Theme toggle (neon/dim) ---------- */
+const themeToggle = document.getElementById('themeToggle');
+const LS_THEME = 'jc_neon_theme_v1';
+let theme = localStorage.getItem(LS_THEME) || 'neon';
+function applyTheme(t){
+  theme = t;
+  localStorage.setItem(LS_THEME, theme);
+  if (theme === 'neon'){
+    document.documentElement.setAttribute('data-theme', 'neon');
+    document.body.setAttribute('data-theme', 'neon');
+    // ensure animations running
+    if (!miniMode) { spawnMotes(); animRunning = true; requestAnimationFrame(loop); }
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dim');
+    document.body.setAttribute('data-theme', 'dim');
+    // pause heavy animations
+    motes = []; confetti = []; animRunning = false; pc.clearRect(0,0,particleCanvas.width,particleCanvas.height); gc.clearRect(0,0,gridCanvas.width,gridCanvas.height);
+  }
+}
+applyTheme(localStorage.getItem(LS_THEME) || 'neon');
+themeToggle.addEventListener('click', ()=> {
+  applyTheme(theme === 'neon' ? 'dim' : 'neon');
+});
+
+/* accessibility: stop animations on tab navigation */
+window.addEventListener('keydown', (e)=> { if (e.key === 'Tab') { /* optional: reduce motion */ } });
+
+/* ensure canvases sized to viewport every load */
+resizeCanvases();
+spawnMotes();
+requestAnimationFrame(loop);
+
