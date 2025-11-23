@@ -1,74 +1,102 @@
 <!doctype html>
 <html lang="en">
-<!-- place near top of body inside .app or .ui-root -->
-<header class="topbar">
-  <div class="brand">
-    <!-- 3D hologram logo -->
-    <div id="logoWrap" style="display:flex;align-items:center;gap:12px;">
-      <div id="holoLogo" style="width:56px;height:56px;border-radius:12px;overflow:hidden;position:relative;transform-style:preserve-3d;">
-        <img id="holoLogoImg" src="/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png" alt="logo" style="width:100%;height:100%;object-fit:cover;filter:contrast(1.05) saturate(1.1);">
-        <div style="position:absolute;inset:0;box-shadow:0 8px 28px rgba(122,0,255,0.08) inset;pointer-events:none;"></div>
-      </div>
-      <div>
-        <div style="color:#dffaf3;font-weight:700;">Neon To-Do</div>
-        <div id="greeting" style="font-size:12px;color:rgba(255,255,255,0.6);">Welcome</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="top-actions">
-    <button id="profileBtn" class="btn-ghost">Profile</button>
-  </div>
-</header>
-  <script>
-    if(localStorage.getItem("loggedIn") !== "true"){
-        window.location.href = "login.html";
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neon To-Do • JCipher</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap');
+    :root{
+      --bg:#02020a; --muted:#98a0b8; --neon1:#00ffd2; --neon2:#7a00ff;
+      --card-bg: rgba(6,6,12,0.72);
     }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui, -apple-system, "Segoe UI", Roboto, Arial;background:var(--bg); color:#e8fff8; -webkit-font-smoothing:antialiased;}
+    body{overflow-x:hidden;padding:28px;display:flex;justify-content:center;align-items:flex-start;}
+
+    /* background canvases */
+    .bg-canvas{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+    /* neon blobs (SVG) */
+    #neonBlobs{ position:fixed; inset:0; width:140%; height:140%; z-index:0; pointer-events:none; }
+
+    .ui-root{ position:relative; z-index:4; width:100%; max-width:980px; margin:40px auto; }
+
+    /* header */
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; z-index:5; }
+    .brand{ display:flex; align-items:center; gap:12px; }
+    #holoLogo{ width:56px; height:56px; border-radius:12px; overflow:hidden; position:relative; transform-style:preserve-3d; border:1px solid rgba(255,255,255,0.03); box-shadow:0 12px 40px rgba(0,0,0,0.6); background:linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); }
+    #holoLogo img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .titleBlock{ line-height:1; }
+    .titleBlock .title{ font-weight:700; color:#dffaf3; font-size:18px; margin-bottom:2px; }
+    .titleBlock .sub{ color:var(--muted); font-size:12px; }
+
+    .btn-ghost{ background:transparent; border:1px solid rgba(255,255,255,0.03); color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer; }
+    .fab{ width:52px; height:52px; border-radius:12px; border:none; cursor:pointer; background:linear-gradient(135deg,var(--neon1),var(--neon2)); color:#041017; font-size:22px; box-shadow:0 12px 40px rgba(122,0,255,0.12); }
+
+    /* main card */
+    .main-card{ position:relative; z-index:3; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:16px; padding:18px; border:1px solid rgba(122,0,255,0.06); box-shadow:0 12px 60px rgba(0,0,0,0.6); backdrop-filter:blur(8px); }
+    .task-form{ display:flex; gap:12px; align-items:center; margin-bottom:14px; }
+    .task-form input{ flex:1; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); background: rgba(6,6,10,0.6); color:#eafcff; outline:none; }
+    .lists{ display:flex; gap:16px; flex-wrap:wrap; }
+    .pane{ flex:1; min-width:300px; }
+    .pane h3{ margin:0 0 8px 6px; color:var(--muted); font-size:13px; }
+
+    .task-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
+    .task-item{ display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); cursor:grab; transition: transform .12s ease, box-shadow .12s ease; position:relative; overflow:hidden; }
+    .task-item::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:6px 0 0 6px; background:linear-gradient(180deg,var(--neon1),var(--neon2)); box-shadow:0 0 18px rgba(122,0,255,0.16); }
+    .task-text{ flex:1; color:#e8fff8; }
+    .task-actions{ display:flex; gap:8px; align-items:center; }
+
+    .text-btn{ background:transparent; border:1px solid rgba(255,255,255,0.03); color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer; }
+    .text-btn.danger{ color:#ff6b7a; border-color: rgba(255,77,109,0.08); }
+
+    .floating-add{ position:fixed; right:28px; bottom:28px; width:64px; height:64px; border-radius:20px; border:none; font-size:28px; color:#041017; background:linear-gradient(135deg,var(--neon1),var(--neon2)); box-shadow:0 20px 60px rgba(122,0,255,0.2); z-index:10; cursor:pointer; display:grid; place-items:center; }
+
+    .card-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; color:var(--muted); font-size:13px; }
+
+    /* profile modal */
+    #profileModal{ position:fixed; inset:0; display:none; place-items:center; z-index:60; }
+    #profileBox{ width:360px; padding:18px; border-radius:14px; background:rgba(6,6,12,0.8); border:1px solid rgba(122,0,255,0.12); box-shadow:0 20px 60px rgba(0,0,0,0.6); backdrop-filter:blur(8px); color:#e8fff8; }
+
+    .sr-only{ position:absolute; width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+
+    @media (max-width:840px){ .lists{ flex-direction:column } .floating-add{ right:14px; bottom:14px; } }
+  </style>
+</head>
+<body>
+<script>
+  // protection: redirect to login if not logged in
+  if (localStorage.getItem('loggedIn') !== 'true' || !localStorage.getItem('jc_current_user')) {
+    window.location.href = 'login.html';
+  }
 </script>
 
-<body data-theme="neon">
-  <!-- Animated background canvas layers -->
-  <canvas id="gridCanvas" class="bg-canvas" aria-hidden="true"></canvas>
-  <canvas id="particleCanvas" class="bg-canvas" aria-hidden="true"></canvas>
-
-  <!-- subtle neon blob (SVG for blur + gradient) -->
-  <svg id="neonBlobs" aria-hidden="true" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <linearGradient id="ng1" x1="0" x2="1">
-        <stop offset="0" stop-color="#00ffd2" stop-opacity="0.9"/>
-        <stop offset="1" stop-color="#7a00ff" stop-opacity="0.9"/>
-      </linearGradient>
-      <filter id="fblur"><feGaussianBlur stdDeviation="40" result="b"/></filter>
-    </defs>
-    <g filter="url(#fblur)" opacity="0.28">
-      <ellipse cx="220" cy="180" rx="300" ry="160" fill="url(#ng1)"></ellipse>
-      <ellipse cx="980" cy="420" rx="260" ry="180" fill="#ff0066" opacity="0.18"></ellipse>
-    </g>
+  <!-- animated background placeholders (can be extended) -->
+  <svg id="neonBlobs" aria-hidden="true" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" style="position:fixed;inset:0;width:140%;height:140%;z-index:0;pointer-events:none;">
+    <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#00ffd2"/><stop offset="1" stop-color="#7a00ff"/></linearGradient><filter id="fb"><feGaussianBlur stdDeviation="40"/></filter></defs>
+    <g filter="url(#fb)" opacity="0.25"><ellipse cx="220" cy="180" rx="300" ry="160" fill="url(#g1)"></ellipse><ellipse cx="980" cy="420" rx="260" ry="180" fill="#ff0066" opacity="0.16"></ellipse></g>
   </svg>
 
-  <!-- App -->
   <div class="ui-root">
     <header class="topbar">
       <div class="brand">
-        <div class="logo">JC</div>
-        <div class="title">
-          <h1>Neon To-Do</h1>
-          <small>Futuristic task manager</small>
+        <div id="holoLogo"><img id="holoLogoImg" src="/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png" alt="logo"></div>
+        <div class="titleBlock">
+          <div class="title">Neon To-Do</div>
+          <div id="greeting" class="sub">Welcome</div>
         </div>
       </div>
-
       <div class="top-actions">
-        <button id="miniModeBtn" class="btn-ghost" title="Toggle reduced motion">⚡</button>
-        <button id="themeToggle" class="btn-ghost" title="Toggle theme">🌙</button>
+        <button id="profileBtn" class="btn-ghost">Profile</button>
+        <button id="themeToggle" class="btn-ghost">Dim</button>
       </div>
     </header>
 
-    <main class="card main-card" role="main" aria-labelledby="appTitle">
-      <h2 id="appTitle" class="sr-only">Neon ToDo</h2>
-
+    <main class="main-card">
       <form id="taskForm" class="task-form" autocomplete="off">
         <input id="taskInput" type="text" placeholder="Create new task — hit Enter" />
-        <button id="addBtn" class="fab" title="Add task">＋</button>
+        <button id="addBtn" class="fab" title="Add task" type="submit">＋</button>
       </form>
 
       <section class="lists">
@@ -76,8 +104,7 @@
           <h3>Tasks</h3>
           <ul id="taskList" class="task-list" aria-label="Active tasks"></ul>
         </div>
-
-        <div class="pane done-pane">
+        <div class="pane">
           <h3>Completed</h3>
           <ul id="doneList" class="task-list" aria-label="Completed tasks"></ul>
         </div>
@@ -94,45 +121,57 @@
 
     <button id="floatAdd" class="floating-add" title="Add task">＋</button>
 
-    <footer class="small-footer">Made by Jagruti • Neon Edition</footer>
+    <footer class="small-footer" style="text-align:center;margin-top:18px;color:var(--muted);">Made by Jagruti • Neon Edition</footer>
   </div>
 
-  <script src="script.js"></script>
   <!-- Profile Modal -->
-<div id="profileModal" style="position:fixed;inset:0;display:none;place-items:center;z-index:60;">
-  <div style="width:360px;padding:18px;border-radius:14px;background:rgba(6,6,12,0.7);border:1px solid rgba(122,0,255,0.12);box-shadow:0 20px 60px rgba(0,0,0,0.6);backdrop-filter:blur(8px);">
-    <div style="display:flex;gap:12px;align-items:center;">
-      <div id="profileAvatar" style="width:72px;height:72px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);"></div>
-      <div style="flex:1;">
-        <div id="profileName" style="color:#dffaf3;font-weight:700;font-size:18px"></div>
-        <div id="profilePhone" style="color:rgba(255,255,255,0.6);font-size:13px"></div>
+  <div id="profileModal">
+    <div id="profileBox" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+      <div style="display:flex;gap:12px;align-items:center;">
+        <div id="profileAvatar" style="width:72px;height:72px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.02)"></div>
+        <div>
+          <div id="profileName" style="font-weight:700;font-size:18px"></div>
+          <div id="profilePhone" style="color:var(--muted);font-size:13px"></div>
+        </div>
       </div>
-    </div>
+      <div style="margin-top:12px;display:flex;gap:8px;">
+        <button id="editProfileBtn" class="text-btn">Edit</button>
+        <button id="logoutBtn" class="text-btn danger">Logout</button>
+        <button id="closeProfileBtn" class="text-btn" style="margin-left:auto">Close</button>
+      </div>
 
-    <div style="margin-top:12px;display:flex;gap:10px;">
-      <button id="editProfileBtn" class="text-btn">Edit</button>
-      <button id="logoutBtn" class="text-btn danger">Logout</button>
-      <button id="closeProfileBtn" class="text-btn" style="margin-left:auto">Close</button>
-    </div>
-
-    <div id="editForm" style="display:none;margin-top:12px;">
-      <label class="muted">Display name</label>
-      <input id="editName" type="text" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:#e8fffb">
-      <label class="muted" style="margin-top:8px;display:block">Avatar URL (or leave default)</label>
-      <input id="editAvatar" type="text" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:#e8fffb">
-      <div style="margin-top:10px;display:flex;gap:8px;">
-        <button id="saveProfileBtn" class="text-btn">Save</button>
-        <button id="cancelEditBtn" class="text-btn">Cancel</button>
+      <div id="editForm" style="display:none;margin-top:12px;">
+        <label class="muted">Display name</label>
+        <input id="editName" type="text" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:#e8fffb">
+        <label class="muted" style="margin-top:8px;display:block">Avatar URL</label>
+        <input id="editAvatar" type="text" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:#e8fffb">
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button id="saveProfileBtn" class="text-btn">Save</button>
+          <button id="cancelEditBtn" class="text-btn">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+
 <script>
-/* PROFILE SYSTEM for index.html */
+/* ---------- small animations for holo logo ---------- */
+(function holoLogoFloat(){
+  const el = document.getElementById('holoLogo');
+  if (!el) return;
+  let t0 = performance.now();
+  function tick(ts){
+    const t = (ts - t0)/1000;
+    el.style.transform = `rotateX(${Math.sin(t)*3}deg) rotateY(${Math.sin(t*0.7)*5}deg)`;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+/* ---------- profile system ---------- */
 function getProfiles(){ return JSON.parse(localStorage.getItem('jc_profiles') || '{}'); }
 function setProfiles(obj){ localStorage.setItem('jc_profiles', JSON.stringify(obj)); }
 function getCurrentUser(){ return localStorage.getItem('jc_current_user') || null; }
-function logoutUser(){ localStorage.removeItem('jc_current_user'); localStorage.removeItem('loggedIn'); location.href = 'login.html'; }
+function logoutUser(){ localStorage.removeItem('jc_current_user'); localStorage.removeItem('loggedIn'); location.href='login.html'; }
 
 const profileBtn = document.getElementById('profileBtn');
 const profileModal = document.getElementById('profileModal');
@@ -161,22 +200,16 @@ function openProfile(){
   editName.value = p.name;
   editAvatar.value = p.avatar;
   greeting.textContent = `Hello, ${p.name}`;
-  // set holo logo avatar
   holoLogoImg.src = p.avatar;
   profileModal.style.display = 'grid';
 }
 
 profileBtn.addEventListener('click', openProfile);
 closeProfileBtn.addEventListener('click', ()=> profileModal.style.display='none');
-logoutBtn.addEventListener('click', ()=> {
-  if (!confirm('Logout?')) return;
-  logoutUser();
-});
+logoutBtn.addEventListener('click', ()=> { if (!confirm('Logout?')) return; logoutUser(); });
 
-editProfileBtn.addEventListener('click', ()=> {
-  editForm.style.display = 'block';
-});
-cancelEditBtn.addEventListener('click', ()=> { editForm.style.display = 'none'; });
+editProfileBtn.addEventListener('click', ()=> { editForm.style.display='block'; });
+cancelEditBtn.addEventListener('click', ()=> { editForm.style.display='none'; });
 
 saveProfileBtn.addEventListener('click', ()=> {
   const phone = getCurrentUser();
@@ -187,25 +220,140 @@ saveProfileBtn.addEventListener('click', ()=> {
   profiles[phone] = p;
   setProfiles(profiles);
   profileModal.style.display = 'none';
-  // refresh greeting and holo logo
   greeting.textContent = `Hello, ${p.name}`;
   holoLogoImg.src = p.avatar;
-  // also re-render tasks if needed
 });
 
-// small hologram micro rotation for the header logo
-(function holoLogoFloat(){
-  const el = document.getElementById('holoLogo');
-  if (!el) return;
-  let t0 = performance.now();
-  function tick(ts){
-    const t = (ts - t0)/1000;
-    el.style.transform = `rotateX(${Math.sin(t)*3}deg) rotateY(${Math.sin(t*0.7)*5}deg) translateZ(0)`;
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-})();
-</script>
+/* ---------- simple ToDo app (localStorage) ---------- */
+const taskForm = document.getElementById('taskForm');
+const taskInput = document.getElementById('taskInput');
+const taskList = document.getElementById('taskList');
+const doneList = document.getElementById('doneList');
+const counts = document.getElementById('counts');
+const addBtn = document.getElementById('addBtn');
+const floatAdd = document.getElementById('floatAdd');
+const clearCompleted = document.getElementById('clearCompleted');
+const clearAll = document.getElementById('clearAll');
 
+const LS_TASKS = 'jc_neon_tasks_v1';
+const LS_DONE = 'jc_neon_done_v1';
+
+let tasks = JSON.parse(localStorage.getItem(LS_TASKS) || '[]');
+let done = JSON.parse(localStorage.getItem(LS_DONE) || '[]');
+
+function saveAll(){ localStorage.setItem(LS_TASKS, JSON.stringify(tasks)); localStorage.setItem(LS_DONE, JSON.stringify(done)); }
+function loadAll(){ tasks = JSON.parse(localStorage.getItem(LS_TASKS) || '[]'); done = JSON.parse(localStorage.getItem(LS_DONE) || '[]'); }
+
+function renderAll(){
+  taskList.innerHTML = ''; doneList.innerHTML = '';
+  tasks.forEach((t,i)=> taskList.appendChild(createTaskEl(t,i,false)));
+  done.forEach((d,i)=> doneList.appendChild(createTaskEl(d,i,true)));
+  updateCounts();
+}
+function createTaskEl(taskObj,index,isDone=false){
+  const li = document.createElement('li');
+  li.className = 'task-item';
+  li.draggable = !isDone;
+  li.dataset.index = index;
+  const handle = document.createElement('div'); handle.className='handle'; handle.textContent='≡';
+  const txt = document.createElement('div'); txt.className='task-text'; txt.textContent = taskObj.text;
+  const actions = document.createElement('div'); actions.className='task-actions';
+  const btnDone = document.createElement('button'); btnDone.className='text-btn'; btnDone.textContent = isDone ? '↺' : '✓';
+  const btnEdit = document.createElement('button'); btnEdit.className='text-btn'; btnEdit.textContent='Edit';
+  const btnDel  = document.createElement('button'); btnDel.className='text-btn danger'; btnDel.textContent='Delete';
+  actions.appendChild(btnDone); actions.appendChild(btnEdit); actions.appendChild(btnDel);
+  li.appendChild(handle); li.appendChild(txt); li.appendChild(actions);
+  if (isDone) li.classList.add('completed');
+
+  btnEdit.addEventListener('click', ()=> {
+    const val = prompt('Edit task', taskObj.text);
+    if (val && val.trim()){ taskObj.text = val.trim(); saveAll(); renderAll(); }
+  });
+
+  btnDone.addEventListener('click', ()=> {
+    if (isDone){ const moved = done.splice(index,1)[0]; tasks.unshift(moved); } 
+    else { const moved = tasks.splice(index,1)[0]; done.unshift(moved); }
+    saveAll(); renderAll();
+  });
+
+  btnDel.addEventListener('click', ()=> {
+    li.style.transition = 'transform .22s ease, opacity .22s';
+    li.style.transform = 'translateX(20px) scale(.98)';
+    li.style.opacity = '0';
+    setTimeout(()=> {
+      if (isDone) done.splice(index,1); else tasks.splice(index,1);
+      saveAll(); renderAll();
+    },220);
+  });
+
+  if (!isDone){
+    li.addEventListener('dragstart', (e)=> { dragSrc = li; li.classList.add('dragging'); try{ e.dataTransfer.setData('text/plain', index);}catch(e){} });
+    li.addEventListener('dragend', ()=> { li.classList.remove('dragging'); });
+    li.addEventListener('dragover', (e)=> { e.preventDefault(); e.dataTransfer.dropEffect='move'; });
+    li.addEventListener('drop', (e)=> { e.preventDefault(); if (!dragSrc || dragSrc===li) return; const src = Number(dragSrc.dataset.index), dst = Number(li.dataset.index); const [m] = tasks.splice(src,1); tasks.splice(dst,0,m); saveAll(); renderAll(); });
+  }
+  return li;
+}
+let dragSrc = null;
+
+taskForm.addEventListener('submit', (e)=> {
+  e.preventDefault();
+  const txt = taskInput.value.trim();
+  if (!txt) return;
+  tasks.unshift({ text: txt, created: Date.now() });
+  taskInput.value = '';
+  saveAll(); renderAll();
+  // small confetti effect using a simple DOM flash
+  flashConfetti();
+});
+
+floatAdd.addEventListener('click', ()=> { taskInput.focus(); taskInput.classList.add('pulse-focus'); setTimeout(()=>taskInput.classList.remove('pulse-focus'),800); });
+
+clearCompleted.addEventListener('click', ()=> {
+  if (!done.length) return alert('No completed tasks to clear.');
+  if (!confirm('Clear all completed tasks?')) return;
+  done = []; saveAll(); renderAll();
+});
+clearAll.addEventListener('click', ()=> {
+  if (!tasks.length && !done.length) return;
+  if (!confirm('Clear all tasks?')) return;
+  tasks = []; done = []; saveAll(); renderAll();
+});
+
+function updateCounts(){ const total = tasks.length + done.length; document.getElementById('counts').textContent = `${tasks.length} tasks • ${done.length} done • ${total} total`; }
+
+loadAll(); renderAll();
+
+/* quick visual confetti (DOM) */
+function flashConfetti(){
+  const el = document.createElement('div');
+  el.style.position='fixed'; el.style.left='50%'; el.style.top='30%'; el.style.transform='translateX(-50%)';
+  el.style.pointerEvents='none'; el.style.zIndex=100; document.body.appendChild(el);
+  for (let i=0;i<24;i++){
+    const p = document.createElement('div'); p.style.width='8px'; p.style.height='8px'; p.style.position='absolute';
+    p.style.left=(Math.random()*160-80)+'px'; p.style.top=(Math.random()*40-20)+'px'; p.style.background = ['#00ffd2','#7a00ff','#ff4d6d'][Math.floor(Math.random()*3)];
+    p.style.opacity='0.95'; p.style.borderRadius='2px'; p.style.transform = `translateY(0) rotate(${Math.random()*360}deg)`;
+    p.style.transition='transform .9s cubic-bezier(.2,.9,.3,1), opacity .9s';
+    el.appendChild(p);
+    setTimeout(()=> { p.style.transform = `translateY(${120 + Math.random()*80}px) rotate(${Math.random()*720}deg)`; p.style.opacity='0'; }, 30 + i*8);
+  }
+  setTimeout(()=> el.remove(), 1200);
+}
+
+/* profile helpers already above in this file block */
+
+/* small theme toggle (dim) */
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', ()=> {
+  if (document.documentElement.getAttribute('data-theme') === 'dim') {
+    document.documentElement.removeAttribute('data-theme');
+    themeToggle.textContent = 'Dim';
+  } else {
+    document.documentElement.setAttribute('data-theme','dim');
+    themeToggle.textContent = 'Glow';
+  }
+});
+
+</script>
 </body>
 </html>
