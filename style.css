@@ -1,109 +1,125 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
-    transition: 0.3s ease;
+:root{
+  --bg-light: linear-gradient(180deg,#f7fbff,#eef6ff);
+  --bg-dark: linear-gradient(180deg,#0b1220,#071025);
+  --card: #ffffff;
+  --glass: rgba(255,255,255,0.6);
+  --muted:#6b7280;
+  --accent1:#6a11cb;
+  --accent2:#2575fc;
 }
 
-body {
-    background: var(--bg);
-    color: var(--text);
-    padding: 20px;
+/* THEME */
+html[data-theme="light"], body[data-theme="light"], body[data-theme="light"] * {
+  color-scheme: light;
+}
+html[data-theme="dark"], body[data-theme="dark"] {
+  color-scheme: dark;
 }
 
-/* Light / Dark theme */
-:root {
-    --bg: #f7f7f7;
-    --card: #ffffff;
-    --text: #333;
-    --accent: #007bff;
+/* base */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+body{
+  transition: background .45s ease, color .35s ease;
+  background: var(--bg-light);
+  padding:28px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
 }
 
-.dark {
-    --bg: #181818;
-    --card: #222;
-    --text: #fff;
-    --accent: #4fa3ff;
+/* dark mode overrides */
+body[data-theme="dark"]{
+  background: var(--bg-dark);
+  color: #e6eef7;
 }
 
-.title {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 32px;
+/* Animated layer (full screen, behind app) */
+#anim-layer{
+  position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+  transition:opacity .4s ease;
 }
 
-/* Input */
-.input-container {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 20px;
+/* hide animations in dark theme */
+body[data-theme="dark"] #anim-layer{ opacity:0; visibility:hidden; transform:scale(.99) }
+
+/* canvas for particles */
+#particles-canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+/* SVG blobs (morphing organic shapes) */
+#blobs{ position:absolute; left:-10%; top:-10%; width:120%; height:60%; z-index:0; transform:scale(1.02) translateZ(0); }
+#blobs path{ filter: blur(18px); transform-origin:center; }
+
+/* floating icons */
+#floating-icons{ position:absolute; right:2%; top:18%; width:220px; height:360px; z-index:0; display:flex; flex-direction:column; gap:18px; justify-content:flex-start; align-items:center; }
+#floating-icons .icon{ font-size:22px; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,0.85); box-shadow:0 8px 30px rgba(14,30,60,0.08); opacity:.95; animation:floatIcon 6s ease-in-out infinite; }
+#floating-icons .icon:nth-child(2){ transform:translateX(18px); animation-duration:5.8s; }
+#floating-icons .icon:nth-child(3){ transform:translateX(-8px); animation-duration:6.6s; }
+#floating-icons .icon:nth-child(4){ transform:translateX(6px); animation-duration:7.2s; }
+@keyframes floatIcon{ 0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-16px) translateX(6px)}100%{transform:translateY(0)} }
+
+/* bubbles */
+#bubbles{ position:absolute; left:6%; top:10%; width:380px; height:420px; z-index:0; }
+.bubble{ position:absolute; border-radius:50%; background:rgba(255,255,255,0.35); box-shadow:0 12px 40px rgba(12,34,80,0.08); animation:rise 12s linear infinite; opacity:.9; }
+.b1{ width:120px; height:120px; left:10%; top:40%; animation-duration:18s; animation-delay:-2s; }
+.b2{ width:60px; height:60px; left:60%; top:70%; animation-duration:14s; animation-delay:-6s; }
+.b3{ width:36px; height:36px; left:28%; top:78%; animation-duration:10s; animation-delay:-1s; }
+.b4{ width:90px; height:90px; left:75%; top:20%; animation-duration:16s; animation-delay:-4s; }
+.b5{ width:44px; height:44px; left:40%; top:10%; animation-duration:13s; animation-delay:-8s; }
+@keyframes rise{ 0%{ transform:translateY(0) scale(.98); opacity:.9 }50%{ transform:translateY(-28px) scale(1.02); opacity:.7 }100%{ transform:translateY(0) scale(.98); opacity:.9 } }
+
+/* waves (bottom gentle) */
+#waves{ position:absolute; left:0; right:0; bottom:-10px; height:160px; z-index:0; transform:translateZ(0); }
+#waves path{ filter: blur(6px); }
+
+/* APP card (on top of animation) */
+.app{ position:relative; z-index:2; width:100%; max-width:920px; margin: 40px auto; }
+
+/* header */
+.app-header{ display:flex; justify-content:space-between; align-items:center; gap:12px; color:#08304a; margin-bottom:14px; }
+.app-header h1{ margin:0; font-size:22px; color:#08304a; }
+.subtitle{ display:block; font-size:12px; color:var(--muted); margin-left:6px; }
+
+/* main card */
+.main-card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82));
+  backdrop-filter: blur(6px);
+  border-radius:16px;
+  padding:18px;
+  box-shadow: 0 10px 30px rgba(20,38,80,0.08);
+  border:1px solid rgba(255,255,255,0.6);
 }
 
-input {
-    width: 60%;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
-    background: var(--card);
-    color: var(--text);
-    font-size: 16px;
-}
+/* form */
+.task-form{ display:flex; gap:8px; align-items:center; margin-bottom:14px; }
+.task-form input{ flex:1; padding:12px 14px; border-radius:12px; border:none; outline:none; font-size:15px; background: #fff; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.02); }
+.task-form button{ width:48px; height:48px; border-radius:12px; border:none; cursor:pointer; font-size:22px; background:linear-gradient(135deg,var(--accent1),var(--accent2)); color:white; display:grid; place-items:center; }
 
-button {
-    padding: 12px 18px;
-    border: none;
-    border-radius: 12px;
-    background: var(--accent);
-    color: white;
-    cursor: pointer;
-    font-size: 18px;
-}
+/* lists */
+.lists{ display:flex; gap:14px; flex-wrap:wrap; }
+.list{ flex:1; min-width:260px; }
+.list h2{ color:#08304a; margin:6px 0 10px; font-size:14px; }
 
-/* Tasks */
-.task-list {
-    list-style: none;
-    max-width: 600px;
-    margin: auto;
-}
+/* task item */
+.task-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+.task-item{ display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; background: #fff; border:1px solid rgba(5,30,60,0.04); cursor:grab; transition: transform .15s ease, box-shadow .15s; }
+.task-item.dragging{ opacity:.6; transform:scale(.99); }
+.handle{ width:36px; height:36px; border-radius:9px; display:grid; place-items:center; background:linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01)); }
+.task-text{ flex:1; color:#08304a; user-select:text; outline:none; }
+.actions{ display:flex; gap:8px; align-items:center; }
 
-.task {
-    background: var(--card);
-    padding: 15px;
-    border-radius: 15px;
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    animation: fadeIn 0.4s ease;
-}
+/* completed */
+.task-item.completed{ opacity:.85; transform:translateX(4px); filter:grayscale(.06); }
+.task-item.completed .task-text{ text-decoration:line-through; opacity:.7; }
 
-.task span {
-    flex: 1;
-    cursor: pointer;
-}
+/* small text buttons */
+.text-btn{ background:transparent; border:none; color:#0b3b66; cursor:pointer; padding:6px 10px; border-radius:8px; }
+.text-btn.danger{ color:#cc3a3a; }
 
-.task.complete span {
-    text-decoration: line-through;
-    opacity: 0.6;
-}
+/* footer */
+.footer{ margin-top:12px; color:#08304a; font-size:13px; text-align:center; }
 
-/* Buttons for each task */
-.task button {
-    margin-left: 10px;
-    padding: 8px 14px;
-    font-size: 14px;
-}
+/* responsive */
+@media (max-width:720px){ .lists{ flex-direction:column } }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Floating Theme Button */
-.theme-toggle {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-}
+/* confetti particles (on the fly) are drawn with canvas in script.js */
