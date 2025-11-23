@@ -6,6 +6,11 @@
   <title>ToDo • JCipher — Neon</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+  <script>
+    if(localStorage.getItem("loggedIn") !== "true"){
+        window.location.href = "login.html";
+    }
+</script>
 <body data-theme="neon">
   <!-- Animated background canvas layers -->
   <canvas id="gridCanvas" class="bg-canvas" aria-hidden="true"></canvas>
