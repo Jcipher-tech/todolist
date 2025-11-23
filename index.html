@@ -1,3 +1,5 @@
+<!doctype html>
+<html lang="en">
 <!-- place near top of body inside .app or .ui-root -->
 <header class="topbar">
   <div class="brand">
@@ -18,3 +20,192 @@
     <button id="profileBtn" class="btn-ghost">Profile</button>
   </div>
 </header>
+  <script>
+    if(localStorage.getItem("loggedIn") !== "true"){
+        window.location.href = "login.html";
+    }
+</script>
+
+<body data-theme="neon">
+  <!-- Animated background canvas layers -->
+  <canvas id="gridCanvas" class="bg-canvas" aria-hidden="true"></canvas>
+  <canvas id="particleCanvas" class="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- subtle neon blob (SVG for blur + gradient) -->
+  <svg id="neonBlobs" aria-hidden="true" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="ng1" x1="0" x2="1">
+        <stop offset="0" stop-color="#00ffd2" stop-opacity="0.9"/>
+        <stop offset="1" stop-color="#7a00ff" stop-opacity="0.9"/>
+      </linearGradient>
+      <filter id="fblur"><feGaussianBlur stdDeviation="40" result="b"/></filter>
+    </defs>
+    <g filter="url(#fblur)" opacity="0.28">
+      <ellipse cx="220" cy="180" rx="300" ry="160" fill="url(#ng1)"></ellipse>
+      <ellipse cx="980" cy="420" rx="260" ry="180" fill="#ff0066" opacity="0.18"></ellipse>
+    </g>
+  </svg>
+
+  <!-- App -->
+  <div class="ui-root">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">JC</div>
+        <div class="title">
+          <h1>Neon To-Do</h1>
+          <small>Futuristic task manager</small>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="miniModeBtn" class="btn-ghost" title="Toggle reduced motion">⚡</button>
+        <button id="themeToggle" class="btn-ghost" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <main class="card main-card" role="main" aria-labelledby="appTitle">
+      <h2 id="appTitle" class="sr-only">Neon ToDo</h2>
+
+      <form id="taskForm" class="task-form" autocomplete="off">
+        <input id="taskInput" type="text" placeholder="Create new task — hit Enter" />
+        <button id="addBtn" class="fab" title="Add task">＋</button>
+      </form>
+
+      <section class="lists">
+        <div class="pane">
+          <h3>Tasks</h3>
+          <ul id="taskList" class="task-list" aria-label="Active tasks"></ul>
+        </div>
+
+        <div class="pane done-pane">
+          <h3>Completed</h3>
+          <ul id="doneList" class="task-list" aria-label="Completed tasks"></ul>
+        </div>
+      </section>
+
+      <div class="card-footer">
+        <div id="counts">0 tasks • 0 done</div>
+        <div class="footer-actions">
+          <button id="clearCompleted" class="text-btn">Clear done</button>
+          <button id="clearAll" class="text-btn danger">Clear all</button>
+        </div>
+      </div>
+    </main>
+
+    <button id="floatAdd" class="floating-add" title="Add task">＋</button>
+
+    <footer class="small-footer">Made by Jagruti • Neon Edition</footer>
+  </div>
+
+  <script src="script.js"></script>
+  <!-- Profile Modal -->
+<div id="profileModal" style="position:fixed;inset:0;display:none;place-items:center;z-index:60;">
+  <div style="width:360px;padding:18px;border-radius:14px;background:rgba(6,6,12,0.7);border:1px solid rgba(122,0,255,0.12);box-shadow:0 20px 60px rgba(0,0,0,0.6);backdrop-filter:blur(8px);">
+    <div style="display:flex;gap:12px;align-items:center;">
+      <div id="profileAvatar" style="width:72px;height:72px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);"></div>
+      <div style="flex:1;">
+        <div id="profileName" style="color:#dffaf3;font-weight:700;font-size:18px"></div>
+        <div id="profilePhone" style="color:rgba(255,255,255,0.6);font-size:13px"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:10px;">
+      <button id="editProfileBtn" class="text-btn">Edit</button>
+      <button id="logoutBtn" class="text-btn danger">Logout</button>
+      <button id="closeProfileBtn" class="text-btn" style="margin-left:auto">Close</button>
+    </div>
+
+    <div id="editForm" style="display:none;margin-top:12px;">
+      <label class="muted">Display name</label>
+      <input id="editName" type="text" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:#e8fffb">
+      <label class="muted" style="margin-top:8px;display:block">Avatar URL (or leave default)</label>
+      <input id="editAvatar" type="text" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:#e8fffb">
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button id="saveProfileBtn" class="text-btn">Save</button>
+        <button id="cancelEditBtn" class="text-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* PROFILE SYSTEM for index.html */
+function getProfiles(){ return JSON.parse(localStorage.getItem('jc_profiles') || '{}'); }
+function setProfiles(obj){ localStorage.setItem('jc_profiles', JSON.stringify(obj)); }
+function getCurrentUser(){ return localStorage.getItem('jc_current_user') || null; }
+function logoutUser(){ localStorage.removeItem('jc_current_user'); localStorage.removeItem('loggedIn'); location.href = 'login.html'; }
+
+const profileBtn = document.getElementById('profileBtn');
+const profileModal = document.getElementById('profileModal');
+const profileAvatar = document.getElementById('profileAvatar');
+const profileNameEl = document.getElementById('profileName');
+const profilePhoneEl = document.getElementById('profilePhone');
+const editProfileBtn = document.getElementById('editProfileBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const closeProfileBtn = document.getElementById('closeProfileBtn');
+const editForm = document.getElementById('editForm');
+const editName = document.getElementById('editName');
+const editAvatar = document.getElementById('editAvatar');
+const saveProfileBtn = document.getElementById('saveProfileBtn');
+const cancelEditBtn = document.getElementById('cancelEditBtn');
+const greeting = document.getElementById('greeting');
+const holoLogoImg = document.getElementById('holoLogoImg');
+
+function openProfile(){
+  const phone = getCurrentUser();
+  if (!phone) { alert('No user'); location.href='login.html'; return; }
+  const profiles = getProfiles();
+  const p = profiles[phone] || { phone, name:'User', avatar:'/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png' };
+  profileNameEl.textContent = p.name;
+  profilePhoneEl.textContent = p.phone;
+  profileAvatar.innerHTML = `<img src="${p.avatar}" style="width:72px;height:72px;object-fit:cover;">`;
+  editName.value = p.name;
+  editAvatar.value = p.avatar;
+  greeting.textContent = `Hello, ${p.name}`;
+  // set holo logo avatar
+  holoLogoImg.src = p.avatar;
+  profileModal.style.display = 'grid';
+}
+
+profileBtn.addEventListener('click', openProfile);
+closeProfileBtn.addEventListener('click', ()=> profileModal.style.display='none');
+logoutBtn.addEventListener('click', ()=> {
+  if (!confirm('Logout?')) return;
+  logoutUser();
+});
+
+editProfileBtn.addEventListener('click', ()=> {
+  editForm.style.display = 'block';
+});
+cancelEditBtn.addEventListener('click', ()=> { editForm.style.display = 'none'; });
+
+saveProfileBtn.addEventListener('click', ()=> {
+  const phone = getCurrentUser();
+  const profiles = getProfiles();
+  const p = profiles[phone] || { phone };
+  p.name = editName.value.trim() || p.name || 'User';
+  p.avatar = editAvatar.value.trim() || p.avatar || '/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png';
+  profiles[phone] = p;
+  setProfiles(profiles);
+  profileModal.style.display = 'none';
+  // refresh greeting and holo logo
+  greeting.textContent = `Hello, ${p.name}`;
+  holoLogoImg.src = p.avatar;
+  // also re-render tasks if needed
+});
+
+// small hologram micro rotation for the header logo
+(function holoLogoFloat(){
+  const el = document.getElementById('holoLogo');
+  if (!el) return;
+  let t0 = performance.now();
+  function tick(ts){
+    const t = (ts - t0)/1000;
+    el.style.transform = `rotateX(${Math.sin(t)*3}deg) rotateY(${Math.sin(t*0.7)*5}deg) translateZ(0)`;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+
+</body>
+</html>
