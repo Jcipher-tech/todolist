@@ -60,6 +60,66 @@ function drawGrid(t){
   }
   gc.restore();
 }
+// CHATBOT OPEN/CLOSE
+document.getElementById("chatbot-btn").onclick = () => {
+    document.getElementById("chatbot-window").style.display = "flex";
+};
+
+document.getElementById("chatbot-close").onclick = () => {
+    document.getElementById("chatbot-window").style.display = "none";
+};
+
+// SEND MESSAGE
+document.getElementById("chatbot-send").onclick = sendMessage;
+document.getElementById("chatbot-input").addEventListener("keypress", function(e){
+    if(e.key === "Enter") sendMessage();
+});
+
+function sendMessage() {
+    let input = document.getElementById("chatbot-input");
+    let msg = input.value.trim();
+    if (!msg) return;
+
+    addMessage(msg, "user-msg");
+    input.value = "";
+
+    setTimeout(() => {
+        botReply(msg.toLowerCase());
+    }, 500);
+}
+
+function addMessage(text, type) {
+    let box = document.getElementById("chatbot-messages");
+    let div = document.createElement("div");
+    div.className = type;
+    div.innerText = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+// BOT REPLIES (CUSTOM FAQ)
+function botReply(question) {
+    let reply = "I didn’t understand that. Try asking: add task, delete task, reset login.";
+
+    if (question.includes("add task"))
+        reply = "To add a task, type in the task box and press ADD.";
+    else if (question.includes("delete"))
+        reply = "Click the delete (🗑️) icon next to any task.";
+    else if (question.includes("edit"))
+        reply = "You can edit tasks by clicking the ✏️ icon.";
+    else if (question.includes("logout"))
+        reply = "Go to profile → Logout to exit your session.";
+    else if (question.includes("profile"))
+        reply = "Open the top-right profile icon to update your avatar and name.";
+    else if (question.includes("task completed"))
+        reply = "Click the checkbox to mark any task as done ✔️.";
+    else if (question.includes("clear all"))
+        reply = "Go to settings → Clear All Tasks.";
+    else if (question.includes("help"))
+        reply = "You can ask me: add task, delete task, edit, logout, profile, clear.";
+
+    addMessage(reply, "bot-msg");
+}
 
 /* particles (glowing motes) */
 let motes = [];
