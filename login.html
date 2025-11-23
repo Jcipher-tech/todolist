@@ -1,49 +1,156 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Login</title>
-    <link rel="stylesheet" href="login.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neon Login • JCipher</title>
+  <link rel="stylesheet" href="login.css" />
+  <style>
+    /* small utilities for the page */
+    .center { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .card { width:360px; padding:28px; border-radius:16px; background:rgba(0,0,0,0.45); border:1px solid rgba(122,0,255,0.12); box-shadow:0 10px 40px rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+    .muted { color: rgba(255,255,255,0.6); font-size:13px; }
+    .field { width:100%; margin:12px 0; }
+    input[type="tel"], input[type="text"]{ width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(6,6,10,0.6); color:#dffaf3; outline:none }
+    .btn { width:100%; padding:12px; border-radius:12px; border:none; cursor:pointer; background: linear-gradient(90deg,#00ffd2,#7a00ff); color:#041017; font-weight:700; }
+    .tiny { font-size:13px; color:var(--muted); text-align:center; margin-top:10px; }
+  </style>
 </head>
 <body>
 
-    <!-- Animated Neon Background -->
-    <div class="background">
-        <div class="blob"></div>
-        <div class="blob two"></div>
+  <!-- background / neon blobs kept in login.css (same feel as app) -->
+  <div class="center">
+    <div class="card" id="loginCard">
+      <h2 style="color:#aefcf0;margin:0 0 6px">Welcome to Neon ToDo</h2>
+      <p class="muted">Sign in with your mobile number</p>
+
+      <div class="field">
+        <label class="muted">Mobile number</label>
+        <input id="mobile" type="tel" placeholder="Enter 10-digit number" maxlength="10" />
+      </div>
+
+      <div class="field" id="nameField" style="display:none;">
+        <label class="muted">Display name</label>
+        <input id="displayName" type="text" placeholder="How should we call you?" />
+      </div>
+
+      <div class="field">
+        <button id="proceedBtn" class="btn">Continue</button>
+      </div>
+
+      <p class="tiny">By continuing you agree to the terms. This demo stores data locally.</p>
     </div>
+  </div>
 
-    <div class="login-container">
-        <h1 class="title">ACCESS PORTAL</h1>
-
-        <form id="loginForm">
-            <label>Mobile Number</label>
-            <input type="tel" id="mobile" maxlength="10" placeholder="Enter 10-digit number" required>
-
-            <button type="submit" class="login-btn">LOGIN</button>
-        </form>
-
-        <p class="footer">© 2025 Jcipher Tech</p>
+  <!-- transition overlay (hologram / loading) -->
+  <div id="transitionOverlay" style="position:fixed;inset:0;display:none;place-items:center;z-index:40;">
+    <div id="holoWrap" style="width:320px;height:420px;display:grid;place-items:center;perspective:1200px;">
+      <!-- HOLOGRAM: image used as layered 3D planes -->
+      <div id="holo" style="width:260px;height:360px;transform-style:preserve-3d;">
+        <!-- layer 1 (back) -->
+        <img id="holoImgBack" src="/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png" alt="holo" style="position:absolute;width:100%;height:100%;object-fit:cover;border-radius:12px;filter:blur(18px) saturate(1.2) opacity(.72)"/>
+        <!-- layer 2 (mid) -->
+        <img id="holoImgMid" src="/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png" alt="holo" style="position:absolute;width:100%;height:100%;object-fit:cover;border-radius:12px;mix-blend-mode:screen;"/>
+        <!-- chrome rim -->
+        <div style="position:absolute;inset:0;border-radius:12px;box-shadow:0 0 40px rgba(122,0,255,0.28), inset 0 0 20px rgba(0,255,210,0.12);pointer-events:none;"></div>
+      </div>
     </div>
+  </div>
 
 <script>
-    document.getElementById("loginForm").addEventListener("submit", function(e){
-        e.preventDefault();
-        
-        let mobile = document.getElementById("mobile").value;
+/*
+  Simple local profile + transition flow.
+  - profiles stored under 'jc_profiles' (object keyed by phone)
+  - current user stored as 'jc_current_user' (phone string)
+*/
 
-        if(mobile.length !== 10){
-            alert("Please enter a valid 10-digit mobile number.");
-            return;
-        }
+function findProfiles(){ return JSON.parse(localStorage.getItem('jc_profiles') || '{}'); }
+function saveProfiles(obj){ localStorage.setItem('jc_profiles', JSON.stringify(obj)); }
 
-        // Save login status
-        localStorage.setItem("loggedIn", "true");
+const mobileEl = document.getElementById('mobile');
+const nameField = document.getElementById('nameField');
+const displayNameEl = document.getElementById('displayName');
+const proceedBtn = document.getElementById('proceedBtn');
+const overlay = document.getElementById('transitionOverlay');
+const holo = document.getElementById('holo');
+const holoImgBack = document.getElementById('holoImgBack');
+const holoImgMid = document.getElementById('holoImgMid');
 
-        // Redirect to To Do app
-        window.location.href = "index.html";
-    });
+proceedBtn.addEventListener('click', async ()=> {
+  const phone = mobileEl.value.trim();
+  if (!/^\d{10}$/.test(phone)) { alert('Enter a valid 10-digit mobile number'); return; }
+
+  // check if profile exists
+  const profiles = findProfiles();
+  const existing = profiles[phone];
+
+  if (!existing) {
+    // ask for display name
+    nameField.style.display = 'block';
+    if (!displayNameEl.value) { displayNameEl.focus(); return; }
+    const name = displayNameEl.value.trim() || ('User' + phone.slice(-3));
+    // create profile object
+    profiles[phone] = {
+      phone,
+      name,
+      // **HOLOGRAM AVATAR**: using uploaded image path - replace with repo URL when deployed
+      avatar: '/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png',
+      created: Date.now()
+    };
+    saveProfiles(profiles);
+    localStorage.setItem('jc_current_user', phone);
+    // show transition
+    await showHoloAndEnter(profiles[phone]);
+  } else {
+    // existing -> set current and transition
+    localStorage.setItem('jc_current_user', phone);
+    await showHoloAndEnter(existing);
+  }
+});
+
+// animate hologram and then go to index.html
+function showHoloAndEnter(profile){
+  return new Promise(resolve=>{
+    overlay.style.display = 'grid';
+    // small intro animation: rotate 3D and pulse
+    holo.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(0px) scale(.9)';
+    holoImgMid.style.transform = 'translateZ(40px) rotateY(0deg)';
+    holoImgBack.style.transform = 'translateZ(-40px) scale(1.06)';
+    // set a subtle pulse with JS (makes it feel 3D)
+    const t0 = performance.now();
+    let raf = null;
+    function step(ts){
+      const t = (ts - t0)/1000;
+      const rx = Math.sin(t*1.1)*6;
+      const ry = Math.cos(t*0.9)*8;
+      holo.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0) scale(${1 + 0.02*Math.sin(t*2)})`;
+      holoImgMid.style.transform = `translateZ(48px) rotateY(${ry*-0.12}deg) translateY(${Math.sin(t*2)*3}px)`;
+      holoImgBack.style.transform = `translateZ(-46px) scale(${1.03 + 0.01*Math.sin(t*1.7)})`;
+      // subtle glow pulse on overlay background
+      overlay.style.background = `radial-gradient(circle at 50% 40%, rgba(122,0,255,0.08) ${20 + 2*Math.sin(t*1.2)}%, transparent 40%)`;
+      raf = requestAnimationFrame(step);
+    }
+    raf = requestAnimationFrame(step);
+
+    // after 1.2s do a flash and dissolve into app
+    setTimeout(()=> {
+      // flash
+      holo.style.transition = 'transform .45s cubic-bezier(.2,.9,.3,1), opacity .5s';
+      holo.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(60px) scale(1.15)'; 
+      overlay.style.transition = 'opacity .7s';
+      overlay.style.opacity = '0';
+      // cleanup after fade
+      setTimeout(()=> {
+        cancelAnimationFrame(raf);
+        overlay.style.display = 'none';
+        overlay.style.opacity = '1';
+        // navigate to app
+        window.location.href = 'index.html';
+        resolve();
+      }, 700);
+    }, 1200);
+  });
+}
 </script>
 
 </body>
