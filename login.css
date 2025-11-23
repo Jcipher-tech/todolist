@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Orbitron', sans-serif;
+}
+
+body {
+    background: black;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Neon Background Blobs */
+.background .blob {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: linear-gradient(45deg, #00eaff, #0077ff);
+    filter: blur(120px);
+    border-radius: 50%;
+    animation: move1 10s infinite alternate;
+}
+
+.background .blob.two {
+    width: 600px;
+    height: 600px;
+    background: linear-gradient(45deg, #8e00ff, #ff00d4);
+    left: 60%;
+    top: 40%;
+    animation: move2 12s infinite alternate;
+}
+
+@keyframes move1 {
+    from { transform: translateX(-200px) translateY(-200px); }
+    to { transform: translateX(200px) translateY(200px); }
+}
+
+@keyframes move2 {
+    from { transform: translateX(200px) translateY(-200px); }
+    to { transform: translateX(-200px) translateY(200px); }
+}
+
+/* LOGIN BOX */
+.login-container {
+    position: relative;
+    width: 350px;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 0 25px #00eaff55;
+    text-align: center;
+}
+
+.title {
+    font-size: 30px;
+    color: #00eaff;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #00eaff;
+}
+
+/* FORM INPUT */
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    background: black;
+    border: 1px solid #00eaff;
+    color: #00eaff;
+    border-radius: 10px;
+    outline: none;
+    font-size: 16px;
+    text-align: center;
+    box-shadow: inset 0 0 10px #00eaff55;
+}
+
+/* LOGIN BUTTON */
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(45deg, #00eaff, #0077ff);
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 0 10px #00eaff, 0 0 20px #0077ff;
+    transition: 0.3s;
+}
+
+.login-btn:hover {
+    box-shadow: 0 0 20px #00eaff, 0 0 30px #0077ff;
+}
+
+/* FOOTER */
+.footer {
+    margin-top: 20px;
+    color: #00eaff88;
+    font-size: 12px;
+}
