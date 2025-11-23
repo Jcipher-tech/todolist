@@ -1,87 +1,20 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ToDo • JCipher — Neon</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-  <script>
-    if(localStorage.getItem("loggedIn") !== "true"){
-        window.location.href = "login.html";
-    }
-</script>
-<body data-theme="neon">
-  <!-- Animated background canvas layers -->
-  <canvas id="gridCanvas" class="bg-canvas" aria-hidden="true"></canvas>
-  <canvas id="particleCanvas" class="bg-canvas" aria-hidden="true"></canvas>
-
-  <!-- subtle neon blob (SVG for blur + gradient) -->
-  <svg id="neonBlobs" aria-hidden="true" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <linearGradient id="ng1" x1="0" x2="1">
-        <stop offset="0" stop-color="#00ffd2" stop-opacity="0.9"/>
-        <stop offset="1" stop-color="#7a00ff" stop-opacity="0.9"/>
-      </linearGradient>
-      <filter id="fblur"><feGaussianBlur stdDeviation="40" result="b"/></filter>
-    </defs>
-    <g filter="url(#fblur)" opacity="0.28">
-      <ellipse cx="220" cy="180" rx="300" ry="160" fill="url(#ng1)"></ellipse>
-      <ellipse cx="980" cy="420" rx="260" ry="180" fill="#ff0066" opacity="0.18"></ellipse>
-    </g>
-  </svg>
-
-  <!-- App -->
-  <div class="ui-root">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo">JC</div>
-        <div class="title">
-          <h1>Neon To-Do</h1>
-          <small>Futuristic task manager</small>
-        </div>
+<!-- place near top of body inside .app or .ui-root -->
+<header class="topbar">
+  <div class="brand">
+    <!-- 3D hologram logo -->
+    <div id="logoWrap" style="display:flex;align-items:center;gap:12px;">
+      <div id="holoLogo" style="width:56px;height:56px;border-radius:12px;overflow:hidden;position:relative;transform-style:preserve-3d;">
+        <img id="holoLogoImg" src="/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png" alt="logo" style="width:100%;height:100%;object-fit:cover;filter:contrast(1.05) saturate(1.1);">
+        <div style="position:absolute;inset:0;box-shadow:0 8px 28px rgba(122,0,255,0.08) inset;pointer-events:none;"></div>
       </div>
-
-      <div class="top-actions">
-        <button id="miniModeBtn" class="btn-ghost" title="Toggle reduced motion">⚡</button>
-        <button id="themeToggle" class="btn-ghost" title="Toggle theme">🌙</button>
+      <div>
+        <div style="color:#dffaf3;font-weight:700;">Neon To-Do</div>
+        <div id="greeting" style="font-size:12px;color:rgba(255,255,255,0.6);">Welcome</div>
       </div>
-    </header>
-
-    <main class="card main-card" role="main" aria-labelledby="appTitle">
-      <h2 id="appTitle" class="sr-only">Neon ToDo</h2>
-
-      <form id="taskForm" class="task-form" autocomplete="off">
-        <input id="taskInput" type="text" placeholder="Create new task — hit Enter" />
-        <button id="addBtn" class="fab" title="Add task">＋</button>
-      </form>
-
-      <section class="lists">
-        <div class="pane">
-          <h3>Tasks</h3>
-          <ul id="taskList" class="task-list" aria-label="Active tasks"></ul>
-        </div>
-
-        <div class="pane done-pane">
-          <h3>Completed</h3>
-          <ul id="doneList" class="task-list" aria-label="Completed tasks"></ul>
-        </div>
-      </section>
-
-      <div class="card-footer">
-        <div id="counts">0 tasks • 0 done</div>
-        <div class="footer-actions">
-          <button id="clearCompleted" class="text-btn">Clear done</button>
-          <button id="clearAll" class="text-btn danger">Clear all</button>
-        </div>
-      </div>
-    </main>
-
-    <button id="floatAdd" class="floating-add" title="Add task">＋</button>
-
-    <footer class="small-footer">Made by Jagruti • Neon Edition</footer>
+    </div>
   </div>
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <div class="top-actions">
+    <button id="profileBtn" class="btn-ghost">Profile</button>
+  </div>
+</header>
