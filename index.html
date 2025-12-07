@@ -1,376 +1,687 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Neon To-Do • JCipher</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap');
-    :root{
-      --bg:#02020a; --muted:#98a0b8; --neon1:#00ffd2; --neon2:#7a00ff;
-      --card-bg: rgba(6,6,12,0.72);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui, -apple-system, "Segoe UI", Roboto, Arial;background:var(--bg); color:#e8fff8; -webkit-font-smoothing:antialiased;}
-    body{overflow-x:hidden;padding:28px;display:flex;justify-content:center;align-items:flex-start;}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Premium Animated To-Do — Ultra</title>
+<meta name="description" content="Animated premium to-do list app — single file" />
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<style>
+  /* ---------- Base & Theme ---------- */
+  :root{
+    --bg-1: #060617;
+    --bg-2: #07112a;
+    --card: rgba(255,255,255,0.04);
+    --muted: #9aa3b2;
+    --glass: rgba(255,255,255,0.03);
+    --accent-a: #7c3aed;
+    --accent-b: #06b6d4;
+    --success: #10b981;
+    --danger: #ef4444;
+    --radius: 14px;
+    --maxw: 1100px;
+  }
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #e6eef8;
+    background: radial-gradient(1200px 600px at 10% 20%, rgba(124,58,237,0.10), transparent),
+                radial-gradient(900px 400px at 90% 80%, rgba(6,182,212,0.08), transparent),
+                linear-gradient(180deg,var(--bg-1),var(--bg-2));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:36px 20px;
+  }
 
-    /* background canvases */
-    .bg-canvas{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  /* ---------- Premium animated shapes (SVG + CSS) ---------- */
+  .bg-shapes {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .shape {
+    position:absolute;
+    filter: blur(34px) saturate(120%);
+    opacity: .9;
+    transform-origin: center;
+    mix-blend-mode: screen;
+    animation: float 10s ease-in-out infinite;
+  }
+  .shape.s1 { left: -10%; top: 5%; width: 520px; height: 520px; background: linear-gradient(135deg, var(--accent-a), #a78bfa); animation-duration: 12s; border-radius: 40% 60% 50% 50% / 40% 30% 70% 60%; }
+  .shape.s2 { right: -5%; bottom: -10%; width: 520px; height: 520px; background: linear-gradient(135deg, var(--accent-b), #67e8f9); animation-duration: 14s; border-radius: 50% 40% 60% 30% / 40% 60% 30% 70%; }
+  .shape.s3 { left: 20%; bottom: 50%; width: 300px; height: 300px; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.04), transparent); animation-duration: 18s; border-radius: 50%; opacity: .6; transform: rotate(10deg) scale(.9) }
+  @keyframes float {
+    0% { transform: translateY(0) rotate(0deg) }
+    50% { transform: translateY(-24px) rotate(6deg) }
+    100% { transform: translateY(0) rotate(0deg) }
+  }
 
-    /* neon blobs (SVG) */
-    #neonBlobs{ position:fixed; inset:0; width:140%; height:140%; z-index:0; pointer-events:none; }
+  /* ---------- App Layout ---------- */
+  .app {
+    position: relative;
+    width: 100%;
+    max-width: var(--maxw);
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 18px;
+    align-items: start;
+  }
 
-    .ui-root{ position:relative; z-index:4; width:100%; max-width:980px; margin:40px auto; }
+  .panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+    border: 1px solid rgba(255,255,255,0.03);
+    backdrop-filter: blur(6px);
+  }
+  header.app-head { display:flex; align-items:center; gap:12px; margin-bottom:8px }
+  header.app-head h1 { font-size:20px; margin:0 }
+  header.app-head p.small { margin:0; color:var(--muted); font-size:13px }
 
-    /* header */
-    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; z-index:5; }
-    .brand{ display:flex; align-items:center; gap:12px; }
-    #holoLogo{ width:56px; height:56px; border-radius:12px; overflow:hidden; position:relative; transform-style:preserve-3d; border:1px solid rgba(255,255,255,0.03); box-shadow:0 12px 40px rgba(0,0,0,0.6); background:linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); }
-    #holoLogo img{ width:100%; height:100%; object-fit:cover; display:block; }
-    .titleBlock{ line-height:1; }
-    .titleBlock .title{ font-weight:700; color:#dffaf3; font-size:18px; margin-bottom:2px; }
-    .titleBlock .sub{ color:var(--muted); font-size:12px; }
+  /* ---------- Controls ---------- */
+  .controls { display:flex; gap:8px; align-items:center; margin-top:6px }
+  .btn {
+    background: linear-gradient(90deg,var(--accent-a),var(--accent-b));
+    padding:8px 12px;
+    border-radius:10px;
+    color:white;
+    border:0;
+    cursor:pointer;
+    box-shadow: 0 8px 26px rgba(7,12,29,0.45);
+    font-weight:600;
+  }
+  .btn.ghost {
+    background: transparent;
+    border:1px solid rgba(255,255,255,0.04);
+    color:var(--muted);
+    box-shadow:none;
+  }
+  .small { font-size:13px; color:var(--muted) }
 
-    .btn-ghost{ background:transparent; border:1px solid rgba(255,255,255,0.03); color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer; }
-    .fab{ width:52px; height:52px; border-radius:12px; border:none; cursor:pointer; background:linear-gradient(135deg,var(--neon1),var(--neon2)); color:#041017; font-size:22px; box-shadow:0 12px 40px rgba(122,0,255,0.12); }
+  input[type="text"], input[type="date"], select, textarea {
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.02);
+    color:inherit;
+    font-size:14px;
+    outline: none;
+  }
+  input[type="text"]::placeholder, textarea::placeholder { color: var(--muted) }
 
-    /* main card */
-    .main-card{ position:relative; z-index:3; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:16px; padding:18px; border:1px solid rgba(122,0,255,0.06); box-shadow:0 12px 60px rgba(0,0,0,0.6); backdrop-filter:blur(8px); }
-    .task-form{ display:flex; gap:12px; align-items:center; margin-bottom:14px; }
-    .task-form input{ flex:1; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); background: rgba(6,6,10,0.6); color:#eafcff; outline:none; }
-    .lists{ display:flex; gap:16px; flex-wrap:wrap; }
-    .pane{ flex:1; min-width:300px; }
-    .pane h3{ margin:0 0 8px 6px; color:var(--muted); font-size:13px; }
+  /* ---------- Task List ---------- */
+  .task-list { display:flex; flex-direction:column; gap:12px; margin-top:12px; max-height:68vh; overflow:auto; padding-right:6px; }
+  .task {
+    display:grid;
+    grid-template-columns: 64px 1fr 120px;
+    gap:12px;
+    align-items:center;
+    padding:12px;
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+    border:1px solid rgba(255,255,255,0.02);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .task:hover{ transform: translateY(-6px); box-shadow: 0 18px 40px rgba(7,12,29,0.6); }
+  .task .left {
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .avatar {
+    width:56px; height:56px; border-radius:50%;
+    display:grid; place-items:center; font-weight:700; color:white;
+    background: linear-gradient(180deg,var(--accent-a),var(--accent-b));
+    box-shadow: 0 8px 26px rgba(124,58,237,0.12);
+  }
+  .meta { color:var(--muted); font-size:13px }
 
-    .task-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
-    .task-item{ display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); cursor:grab; transition: transform .12s ease, box-shadow .12s ease; position:relative; overflow:hidden; }
-    .task-item::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:6px 0 0 6px; background:linear-gradient(180deg,var(--neon1),var(--neon2)); box-shadow:0 0 18px rgba(122,0,255,0.16); }
-    .task-text{ flex:1; color:#e8fff8; }
-    .task-actions{ display:flex; gap:8px; align-items:center; }
+  .task .title { font-weight:700; font-size:15px; }
+  .task .desc { font-size:13px; color:var(--muted); margin-top:6px }
 
-    .text-btn{ background:transparent; border:1px solid rgba(255,255,255,0.03); color:var(--muted); padding:8px 10px; border-radius:10px; cursor:pointer; }
-    .text-btn.danger{ color:#ff6b7a; border-color: rgba(255,77,109,0.08); }
+  .badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+  .badge { background: rgba(255,255,255,0.02); padding:6px 8px; border-radius:8px; font-size:12px; color:var(--muted); border:1px solid rgba(255,255,255,0.02) }
 
-    .floating-add{ position:fixed; right:28px; bottom:28px; width:64px; height:64px; border-radius:20px; border:none; font-size:28px; color:#041017; background:linear-gradient(135deg,var(--neon1),var(--neon2)); box-shadow:0 20px 60px rgba(122,0,255,0.2); z-index:10; cursor:pointer; display:grid; place-items:center; }
+  .progress { width:100%; height:10px; background: rgba(255,255,255,0.03); border-radius:999px; overflow:hidden; }
+  .progress > i { display:block; height:100%; background: linear-gradient(90deg,var(--accent-a),var(--accent-b)); width:0%; transition: width .6s cubic-bezier(.2,.9,.2,1); }
 
-    .card-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; color:var(--muted); font-size:13px; }
+  .actions { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
 
-    /* profile modal */
-    #profileModal{ position:fixed; inset:0; display:none; place-items:center; z-index:60; }
-    #profileBox{ width:360px; padding:18px; border-radius:14px; background:rgba(6,6,12,0.8); border:1px solid rgba(122,0,255,0.12); box-shadow:0 20px 60px rgba(0,0,0,0.6); backdrop-filter:blur(8px); color:#e8fff8; }
+  /* ---------- Side Panel ---------- */
+  .side { display:flex; flex-direction:column; gap:12px }
+  .stat { padding:12px; border-radius:10px; background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent); border:1px solid rgba(255,255,255,0.02) }
+  .list-compact { display:flex; flex-direction:column; gap:8px; }
 
-    .sr-only{ position:absolute; width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+  /* ---------- Footer ---------- */
+  footer { text-align:center; color:var(--muted); font-size:13px; margin-top:12px }
 
-    @media (max-width:840px){ .lists{ flex-direction:column } .floating-add{ right:14px; bottom:14px; } }
-  </style>
+  /* ---------- Responsive ---------- */
+  @media (max-width: 980px) {
+    .app { grid-template-columns: 1fr; padding-bottom:40px }
+    .task { grid-template-columns: 56px 1fr; }
+    .task .actions { grid-column: 1 / -1; justify-content:space-between }
+    .side { order: -1 }
+  }
+
+  /* ---------- Tiny helpers ---------- */
+  .muted { color:var(--muted) }
+  .flex { display:flex; gap:8px; align-items:center }
+  .right { margin-left:auto; }
+  .hidden { display:none }
+  .pill { padding:6px 8px; border-radius:999px; font-size:13px; background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03) }
+
+</style>
 </head>
 <body>
-<script>
-  // protection: redirect to login if not logged in
-  if (localStorage.getItem('loggedIn') !== 'true' || !localStorage.getItem('jc_current_user')) {
-    window.location.href = 'login.html';
-  }
-</script>
+  <!-- Animated background shapes -->
+  <div class="bg-shapes" aria-hidden="true">
+    <div class="shape s1"></div>
+    <div class="shape s2"></div>
+    <div class="shape s3"></div>
+  </div>
 
-  <!-- animated background placeholders (can be extended) -->
-  <svg id="neonBlobs" aria-hidden="true" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" style="position:fixed;inset:0;width:140%;height:140%;z-index:0;pointer-events:none;">
-    <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#00ffd2"/><stop offset="1" stop-color="#7a00ff"/></linearGradient><filter id="fb"><feGaussianBlur stdDeviation="40"/></filter></defs>
-    <g filter="url(#fb)" opacity="0.25"><ellipse cx="220" cy="180" rx="300" ry="160" fill="url(#g1)"></ellipse><ellipse cx="980" cy="420" rx="260" ry="180" fill="#ff0066" opacity="0.16"></ellipse></g>
-  </svg>
-
-  <div class="ui-root">
-    <header class="topbar">
-      <div class="brand">
-        <div id="holoLogo"><img id="holoLogoImg" src="/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png" alt="logo"></div>
-        <div class="titleBlock">
-          <div class="title">Neon To-Do</div>
-          <div id="greeting" class="sub">Welcome</div>
+  <div class="app" role="application" aria-label="Premium To-Do App">
+    <!-- Main column -->
+    <div class="panel" style="min-height:80vh;">
+      <header class="app-head">
+        <div>
+          <h1>Premium To-Do • Animated</h1>
+          <p class="small">Keyboard: <span class="pill">N</span> new task • Auto-saved locally</p>
         </div>
-      </div>
-      <div class="top-actions">
-        <button id="profileBtn" class="btn-ghost">Profile</button>
-        <button id="themeToggle" class="btn-ghost">Dim</button>
-      </div>
-    </header>
-
-    <main class="main-card">
-      <form id="taskForm" class="task-form" autocomplete="off">
-        <input id="taskInput" type="text" placeholder="Create new task — hit Enter" />
-        <button id="addBtn" class="fab" title="Add task" type="submit">＋</button>
-      </form>
-
-      <section class="lists">
-        <div class="pane">
-          <h3>Tasks</h3>
-          <ul id="taskList" class="task-list" aria-label="Active tasks"></ul>
+        <div class="right">
+          <button id="themeToggle" class="btn btn-small ghost">Toggle Theme</button>
         </div>
-        <div class="pane">
-          <h3>Completed</h3>
-          <ul id="doneList" class="task-list" aria-label="Completed tasks"></ul>
+      </header>
+
+      <!-- Create form -->
+      <section>
+        <div style="display:grid;grid-template-columns:1fr 220px;gap:10px;align-items:start">
+          <div>
+            <input id="taskTitle" type="text" placeholder="Task title (required)" />
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <input id="taskSub" type="text" placeholder="Comma-separated subtasks (optional)" />
+              <select id="taskPriority" style="width:140px">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <textarea id="taskNotes" rows="2" placeholder="Notes (optional)" style="margin-top:8px"></textarea>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <input id="taskDue" type="date" />
+            <select id="taskCategory">
+              <option value="General" selected>General</option>
+              <option>Work</option>
+              <option>Study</option>
+              <option>Personal</option>
+            </select>
+            <div style="display:flex;gap:8px">
+              <button id="addBtn" class="btn" style="flex:1">Add Task</button>
+              <button id="clearBtn" class="btn ghost" title="Clear all tasks">Clear</button>
+            </div>
+            <div class="small muted">Tip: Add subtasks to auto-calc completion %</div>
+          </div>
         </div>
       </section>
 
-      <div class="card-footer">
-        <div id="counts">0 tasks • 0 done</div>
-        <div class="footer-actions">
-          <button id="clearCompleted" class="text-btn">Clear done</button>
-          <button id="clearAll" class="text-btn danger">Clear all</button>
+      <!-- Search & filters -->
+      <section style="margin-top:12px; display:flex;gap:8px;align-items:center;">
+        <input id="searchInput" type="text" placeholder="Search tasks, notes, categories..." style="flex:1" />
+        <select id="filterCategory" class="pill">
+          <option value="all">All Categories</option>
+          <option>General</option><option>Work</option><option>Study</option><option>Personal</option>
+        </select>
+        <select id="filterStatus" class="pill">
+          <option value="all">Any status</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+        </select>
+        <select id="sortBy" class="pill">
+          <option value="created">Newest</option>
+          <option value="due">Due date</option>
+          <option value="priority">Priority</option>
+          <option value="percent">Completion</option>
+        </select>
+      </section>
+
+      <!-- Task list -->
+      <section class="task-list" id="tasksList" aria-live="polite"></section>
+
+      <footer>
+        <div style="display:flex;gap:12px;align-items:center;justify-content:center">
+          <button id="exportBtn" class="btn ghost">Export JSON</button>
+          <button id="importBtn" class="btn ghost">Import JSON</button>
+          <input id="importFile" type="file" accept="application/json" class="hidden" />
         </div>
-      </div>
-    </main>
-
-    <button id="floatAdd" class="floating-add" title="Add task">＋</button>
-
-    <footer class="small-footer" style="text-align:center;margin-top:18px;color:var(--muted);">Made by Jagruti • Neon Edition</footer>
-  </div>
-
-  <!-- Profile Modal -->
-  <div id="profileModal">
-    <div id="profileBox" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div id="profileAvatar" style="width:72px;height:72px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.02)"></div>
-        <div>
-          <div id="profileName" style="font-weight:700;font-size:18px"></div>
-          <div id="profilePhone" style="color:var(--muted);font-size:13px"></div>
-        </div>
-      </div>
-      <div style="margin-top:12px;display:flex;gap:8px;">
-        <button id="editProfileBtn" class="text-btn">Edit</button>
-        <button id="logoutBtn" class="text-btn danger">Logout</button>
-        <button id="closeProfileBtn" class="text-btn" style="margin-left:auto">Close</button>
-      </div>
-
-      <div id="editForm" style="display:none;margin-top:12px;">
-        <label class="muted">Display name</label>
-        <input id="editName" type="text" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:#e8fffb">
-        <label class="muted" style="margin-top:8px;display:block">Avatar URL</label>
-        <input id="editAvatar" type="text" style="width:100%;padding:10px;border-radius:8px;margin-top:6px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:#e8fffb">
-        <div style="margin-top:10px;display:flex;gap:8px;">
-          <button id="saveProfileBtn" class="text-btn">Save</button>
-          <button id="cancelEditBtn" class="text-btn">Cancel</button>
-        </div>
-      </div>
+        <div style="margin-top:8px" class="small muted">Made with ❤️ — Save & share your productivity</div>
+      </footer>
     </div>
+
+    <!-- Side panel -->
+    <aside class="panel side">
+      <div class="stat">
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong>Summary</strong>
+          <div class="right small muted" id="summarySmall">0 tasks • 0%</div>
+        </div>
+        <div style="margin-top:8px" class="list-compact">
+          <div class="small muted" id="counts">Completed: 0 • Pending: 0</div>
+          <div style="margin-top:10px">
+            <div class="small muted">Overall Progress</div>
+            <div class="progress" style="margin-top:6px"><i id="overallFill" style="width:0%"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat">
+        <strong>Quick Actions</strong>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+          <button id="markAllDone" class="btn ghost">Mark All Done</button>
+          <button id="deleteCompleted" class="btn ghost">Delete Completed</button>
+          <button id="downloadSample" class="btn">Download Sample</button>
+        </div>
+      </div>
+
+      <div class="stat">
+        <strong>Theme</strong>
+        <div style="margin-top:8px" class="small muted">Toggle animations & theme</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="animToggle" class="btn ghost">Toggle Anim</button>
+          <button id="lightToggle" class="btn ghost">Light Mode</button>
+        </div>
+      </div>
+    </aside>
   </div>
 
 <script>
-/* ---------- small animations for holo logo ---------- */
-(function holoLogoFloat(){
-  const el = document.getElementById('holoLogo');
-  if (!el) return;
-  let t0 = performance.now();
-  function tick(ts){
-    const t = (ts - t0)/1000;
-    el.style.transform = `rotateX(${Math.sin(t)*3}deg) rotateY(${Math.sin(t*0.7)*5}deg)`;
-    requestAnimationFrame(tick);
+/* -------------------------
+   Premium To-Do App Script
+   ------------------------- */
+
+(() => {
+  // Storage key
+  const KEY = 'premium_todo_v1';
+
+  // DOM
+  const taskTitle = el('#taskTitle');
+  const taskSub = el('#taskSub');
+  const taskNotes = el('#taskNotes');
+  const taskDue = el('#taskDue');
+  const taskPriority = el('#taskPriority');
+  const taskCategory = el('#taskCategory');
+  const addBtn = el('#addBtn');
+  const clearBtn = el('#clearBtn');
+  const tasksList = el('#tasksList');
+  const summarySmall = el('#summarySmall');
+  const overallFill = el('#overallFill');
+  const countsEl = el('#counts');
+  const searchInput = el('#searchInput');
+  const filterCategory = el('#filterCategory');
+  const filterStatus = el('#filterStatus');
+  const sortBy = el('#sortBy');
+  const exportBtn = el('#exportBtn');
+  const importBtn = el('#importBtn');
+  const importFile = el('#importFile');
+  const markAllDone = el('#markAllDone');
+  const deleteCompleted = el('#deleteCompleted');
+  const downloadSample = el('#downloadSample');
+  const animToggle = el('#animToggle');
+  const lightToggle = el('#lightToggle');
+  const themeToggle = el('#themeToggle');
+
+  // State
+  let tasks = loadTasks();
+  let animationsEnabled = true;
+  let lightMode = false;
+
+  // Init
+  render();
+  bindEvents();
+  updateSummary();
+
+  // ---------- helpers ----------
+  function el(sel){ return document.querySelector(sel) }
+  function qsa(sel){ return Array.from(document.querySelectorAll(sel)) }
+  function uid(prefix='t_'){ return prefix + Math.random().toString(36).slice(2,9) }
+
+  function saveTasks(){
+    try{ localStorage.setItem(KEY, JSON.stringify(tasks)); }catch(e){}
+    updateSummary();
   }
-  requestAnimationFrame(tick);
+  function loadTasks(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return [] }
+  }
+
+  function computePercent(task){
+    if (task.manualPercent != null && task.manualPercent !== '') {
+      const p = parseFloat(task.manualPercent);
+      if (!isNaN(p)) return Math.max(0, Math.min(100, p));
+    }
+    const subs = task.subtasks || [];
+    if (subs.length === 0) return task.completed ? 100 : 0;
+    const done = subs.filter(s => s.done).length;
+    return Math.round((done / subs.length) * 100);
+  }
+
+  function overallPercent(){
+    if (!tasks.length) return 0;
+    const sum = tasks.reduce((a,t)=> a + computePercent(t), 0);
+    return Math.round(sum / tasks.length);
+  }
+
+  function formatDate(d){
+    if(!d) return '';
+    try{ const dt = new Date(d); return dt.toLocaleDateString(); }catch(e){ return d }
+  }
+
+  // ---------- UI actions ----------
+  addBtn.addEventListener('click', ()=> {
+    const title = taskTitle.value.trim();
+    if (!title) { alert('Please enter a task title'); taskTitle.focus(); return; }
+    const subs = (taskSub.value || '').split(',').map(s=>s.trim()).filter(Boolean).map(s=>({ id: uid('s_'), title: s, done: false }));
+    const t = {
+      id: uid(),
+      title,
+      notes: taskNotes.value.trim(),
+      due: taskDue.value || null,
+      priority: taskPriority.value,
+      category: taskCategory.value || 'General',
+      subtasks: subs,
+      createdAt: new Date().toISOString(),
+      manualPercent: null,
+      completed: false
+    };
+    tasks.unshift(t);
+    clearCreate();
+    saveTasks();
+    render();
+    pulseAdd();
+  });
+
+  clearBtn.addEventListener('click', ()=> {
+    if (!confirm('Clear ALL tasks? This cannot be undone.')) return;
+    tasks = [];
+    saveTasks();
+    render();
+  });
+
+  exportBtn.addEventListener('click', ()=> {
+    const blob = new Blob([JSON.stringify(tasks,null,2)],{type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tasks.json'; a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  importBtn.addEventListener('click', ()=> importFile.click());
+  importFile.addEventListener('change', (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=> {
+      try{
+        const dt = JSON.parse(r.result);
+        if (!Array.isArray(dt)) throw new Error('Invalid format');
+        // merge with existing (but keep unique ids)
+        const merged = [...dt, ...tasks].filter((v,i,a)=> a.findIndex(x=>x.id===v.id)===i);
+        tasks = merged;
+        saveTasks(); render();
+        alert('Imported ' + dt.length + ' tasks');
+      }catch(err){ alert('Import failed: ' + err.message) }
+    };
+    r.readAsText(f);
+    importFile.value = '';
+  });
+
+  searchInput.addEventListener('input', debounce(render, 240));
+  filterCategory.addEventListener('change', render);
+  filterStatus.addEventListener('change', render);
+  sortBy.addEventListener('change', render);
+
+  markAllDone.addEventListener('click', ()=> {
+    tasks = tasks.map(t=> ({ ...t, subtasks: (t.subtasks||[]).map(s=>({...s,done:true})), manualPercent: 100, completed: true }));
+    saveTasks(); render();
+  });
+
+  deleteCompleted.addEventListener('click', ()=> {
+    if(!confirm('Delete all completed tasks?')) return;
+    tasks = tasks.filter(t => computePercent(t) < 100);
+    saveTasks(); render();
+  });
+
+  downloadSample.addEventListener('click', ()=> {
+    const sample = [
+      { id: uid(), title: 'Design project UI', notes:'Add dark theme & animated shapes', priority:'high', category:'Work', subtasks:[{id:uid('s'),title:'Wireframe',done:true},{id:uid('s'),title:'Colors',done:false}], createdAt:new Date().toISOString(), manualPercent:null, completed:false },
+      { id: uid(), title: 'Study DBMS', notes:'Read chapters & practice queries', priority:'medium', category:'Study', subtasks:[], createdAt:new Date().toISOString(), manualPercent:40, completed:false }
+    ];
+    const blob = new Blob([JSON.stringify(sample,null,2)],{type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sample_tasks.json'; a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  animToggle.addEventListener('click', ()=> {
+    animationsEnabled = !animationsEnabled;
+    document.querySelectorAll('.task').forEach(el => {
+      if (!animationsEnabled) {
+        el.style.transition = 'none';
+        el.style.transform = 'none';
+      } else {
+        el.style.transition = '';
+      }
+    });
+    animToggle.textContent = animationsEnabled ? 'Anim On' : 'Anim Off';
+  });
+
+  lightToggle.addEventListener('click', ()=> {
+    lightMode = !lightMode;
+    document.body.style.background = lightMode ? 'linear-gradient(180deg,#f8fafc,#e6eef8)' : '';
+    lightToggle.textContent = lightMode ? 'Dark Mode' : 'Light Mode';
+  });
+
+  themeToggle.addEventListener('click', ()=> {
+    document.body.classList.toggle('alt-theme');
+    // quick visual pulse
+    document.body.animate([{filter:'brightness(1.1)'},{filter:'brightness(1)'}],{duration:360});
+  });
+
+  // ---------- Interactive functions ----------
+  function toggleSub(taskId, subId){
+    const t = tasks.find(x=>x.id===taskId); if(!t) return;
+    t.subtasks = t.subtasks.map(s=> s.id===subId ? {...s, done: !s.done} : s );
+    t.manualPercent = null;
+    t.completed = computePercent(t)===100;
+    saveTasks(); render();
+  }
+
+  function toggleComplete(taskId){
+    const t = tasks.find(x=>x.id===taskId); if(!t) return;
+    if (computePercent(t)===100){
+      // mark pending
+      if (t.subtasks && t.subtasks.length) t.subtasks = t.subtasks.map(s=>({...s, done:false}));
+      else t.manualPercent = 0;
+      t.completed = false;
+    } else {
+      if (t.subtasks && t.subtasks.length) t.subtasks = t.subtasks.map(s=>({...s, done:true}));
+      else t.manualPercent = 100;
+      t.completed = true;
+    }
+    saveTasks(); render();
+  }
+
+  function removeTask(taskId){
+    if (!confirm('Delete task?')) return;
+    tasks = tasks.filter(t => t.id !== taskId);
+    saveTasks(); render();
+  }
+
+  function editTask(taskId){
+    const t = tasks.find(x=>x.id===taskId); if(!t) return;
+    const newTitle = prompt('Edit title', t.title);
+    if (newTitle === null) return;
+    t.title = newTitle.trim() || t.title;
+    t.notes = prompt('Notes', t.notes || '') || t.notes;
+    const mp = prompt('Manual percent (leave empty to auto-calc)', t.manualPercent != null ? t.manualPercent : '');
+    t.manualPercent = mp === '' || mp === null ? null : Math.max(0, Math.min(100, parseInt(mp||0)));
+    saveTasks(); render();
+  }
+
+  // ---------- Render ----------
+  function render(){
+    // filter & search & sort
+    const q = (searchInput.value || '').toLowerCase().trim();
+    let list = [...tasks];
+    const fc = filterCategory.value;
+    const fs = filterStatus.value;
+    const sb = sortBy.value;
+
+    if (fc !== 'all') list = list.filter(t => (t.category||'General') === fc);
+    if (fs === 'completed') list = list.filter(t => computePercent(t) === 100);
+    if (fs === 'pending') list = list.filter(t => computePercent(t) < 100);
+    if (q) list = list.filter(t => (t.title + ' ' + (t.notes||'') + ' ' + (t.category||'')).toLowerCase().includes(q));
+
+    if (sb === 'created') list.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+    if (sb === 'due') list.sort((a,b)=> (a.due||'9999') > (b.due||'9999') ? 1 : -1);
+    if (sb === 'priority') list.sort((a,b)=> priorityVal(b.priority) - priorityVal(a.priority));
+    if (sb === 'percent') list.sort((a,b)=> computePercent(b) - computePercent(a));
+
+    // render
+    tasksList.innerHTML = '';
+    for (const t of list){
+      const p = computePercent(t);
+      const div = document.createElement('div');
+      div.className = 'task';
+      div.innerHTML = `
+        <div class="left">
+          <div class="avatar">${p}%</div>
+          <div class="meta">${formatDate(t.due)}</div>
+        </div>
+        <div>
+          <div class="title">${escapeHtml(t.title)}</div>
+          <div class="desc">${escapeHtml(t.notes || '')}</div>
+          <div class="badges" style="margin-top:8px">
+            <div class="badge">${escapeHtml(t.category || 'General')}</div>
+            <div class="badge">Priority: ${t.priority}</div>
+            <div class="badge small muted">Created: ${new Date(t.createdAt).toLocaleString()}</div>
+          </div>
+          <div style="margin-top:8px">
+            <div class="progress"><i style="width:${p}%"></i></div>
+          </div>
+        </div>
+        <div class="actions">
+          <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <div style="display:flex;gap:6px">
+              <button class="btn ghost small" data-act="edit" title="Edit">Edit</button>
+              <button class="btn ghost small" data-act="toggle" title="Toggle Complete">${p===100 ? 'Uncomplete' : 'Complete'}</button>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn ghost small" data-act="remove" title="Delete">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // attach subtask list below title if present
+      if (t.subtasks && t.subtasks.length){
+        const subwrap = document.createElement('div');
+        subwrap.style.marginTop = '10px';
+        subwrap.style.display = 'flex';
+        subwrap.style.flexDirection = 'column';
+        subwrap.style.gap = '6px';
+        for (const s of t.subtasks){
+          const r = document.createElement('label');
+          r.style.display = 'flex';
+          r.style.alignItems = 'center';
+          r.style.gap = '8px';
+          r.innerHTML = `<input type="checkbox" ${s.done ? 'checked':''} /> <span style="font-size:13px; color:${s.done ? '#84cc16' : 'var(--muted)'}">${escapeHtml(s.title)}</span>`;
+          r.querySelector('input').addEventListener('change', ()=> toggleSub(t.id, s.id));
+          subwrap.appendChild(r);
+        }
+        div.querySelector('div:nth-child(2)').appendChild(subwrap);
+      }
+
+      // actions
+      div.querySelector('[data-act="remove"]').addEventListener('click', ()=> removeTask(t.id));
+      div.querySelector('[data-act="edit"]').addEventListener('click', ()=> editTask(t.id));
+      div.querySelector('[data-act="toggle"]').addEventListener('click', ()=> toggleComplete(t.id));
+
+      // animate entry
+      if (animationsEnabled) {
+        div.style.opacity = 0;
+        div.style.transform = 'translateY(12px)';
+        setTimeout(()=> {
+          div.style.transition = 'opacity .38s cubic-bezier(.2,.9,.2,1), transform .38s cubic-bezier(.2,.9,.2,1)';
+          div.style.opacity = 1;
+          div.style.transform = 'translateY(0)';
+        }, 16);
+      }
+
+      tasksList.appendChild(div);
+    }
+
+    // update progress bars if any
+    overallFill.style.width = overallPercent() + '%';
+    summarySmall.textContent = `${tasks.length} tasks • Overall: ${overallPercent()}%`;
+    countsEl.textContent = `Completed: ${tasks.filter(t=>computePercent(t)===100).length} • Pending: ${tasks.filter(t=>computePercent(t)<100).length}`;
+  }
+
+  // ---------- utilities ----------
+  function escapeHtml(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+  function priorityVal(p){ return p==='high'?3: p==='medium'?2:1; }
+  function clearCreate(){ taskTitle.value=''; taskSub.value=''; taskNotes.value=''; taskDue.value=''; taskPriority.value='medium'; taskCategory.value='General'; }
+  function pulseAdd(){
+    addBtn.animate([{transform:'scale(1)'},{transform:'scale(1.04)'},{transform:'scale(1)'}],{duration:320});
+  }
+  function debounce(fn,wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=> fn.apply(this,a), wait); } }
+
+  // ---------- keyboard shortcuts ----------
+  window.addEventListener('keydown', (e)=>{
+    if (e.key.toLowerCase()==='n' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
+      e.preventDefault(); taskTitle.focus();
+    }
+    if (e.key === 'Escape'){ taskTitle.blur(); }
+  });
+
+  // ---------- summary update ----------
+  function updateSummary(){
+    // update counts & overall
+    const overall = overallPercent();
+    overallFill.style.width = overall + '%';
+    summarySmall.textContent = `${tasks.length} tasks • Overall: ${overall}%`;
+    countsEl.textContent = `Completed: ${tasks.filter(t=>computePercent(t)===100).length} • Pending: ${tasks.filter(t=>computePercent(t)<100).length}`;
+  }
+
+  // ---------- sample local data if empty ----------
+  if (!tasks.length){
+    tasks = [
+      { id: uid(), title: 'Design premium UI', notes: 'Add animated background shapes and glass effect', due: null, priority: 'high', category: 'Work', subtasks: [{id: uid('s'), title: 'Wireframes', done: true}, {id: uid('s'), title: 'Colors & Typography', done: false}], createdAt: new Date().toISOString(), manualPercent: null, completed:false },
+      { id: uid(), title: 'Write project README', notes: 'Describe features & deployment steps', due: null, priority: 'medium', category: 'General', subtasks: [], createdAt: new Date().toISOString(), manualPercent: 20, completed:false }
+    ];
+    saveTasks();
+  }
+
+  // ---------- keyboard focus on load ----------
+  window.addEventListener('load', ()=> { taskTitle.focus(); });
+
+  // ---------- helper: attach event shorteners (already above) ----------
+
+  // expose for dev console if needed
+  window._premiumTodo = {
+    getTasks: ()=> tasks,
+    setTasks: (t)=> { tasks = t; saveTasks(); render(); }
+  };
+
+  // ---------- initial render & save ----------
+  saveTasks();
+  render();
+
 })();
-
-/* ---------- profile system ---------- */
-function getProfiles(){ return JSON.parse(localStorage.getItem('jc_profiles') || '{}'); }
-function setProfiles(obj){ localStorage.setItem('jc_profiles', JSON.stringify(obj)); }
-function getCurrentUser(){ return localStorage.getItem('jc_current_user') || null; }
-function logoutUser(){ localStorage.removeItem('jc_current_user'); localStorage.removeItem('loggedIn'); location.href='login.html'; }
-
-const profileBtn = document.getElementById('profileBtn');
-const profileModal = document.getElementById('profileModal');
-const profileAvatar = document.getElementById('profileAvatar');
-const profileNameEl = document.getElementById('profileName');
-const profilePhoneEl = document.getElementById('profilePhone');
-const editProfileBtn = document.getElementById('editProfileBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const closeProfileBtn = document.getElementById('closeProfileBtn');
-const editForm = document.getElementById('editForm');
-const editName = document.getElementById('editName');
-const editAvatar = document.getElementById('editAvatar');
-const saveProfileBtn = document.getElementById('saveProfileBtn');
-const cancelEditBtn = document.getElementById('cancelEditBtn');
-const greeting = document.getElementById('greeting');
-const holoLogoImg = document.getElementById('holoLogoImg');
-
-function openProfile(){
-  const phone = getCurrentUser();
-  if (!phone) { alert('No user'); location.href='login.html'; return; }
-  const profiles = getProfiles();
-  const p = profiles[phone] || { phone, name:'User', avatar:'/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png' };
-  profileNameEl.textContent = p.name;
-  profilePhoneEl.textContent = p.phone;
-  profileAvatar.innerHTML = `<img src="${p.avatar}" style="width:72px;height:72px;object-fit:cover;">`;
-  editName.value = p.name;
-  editAvatar.value = p.avatar;
-  greeting.textContent = `Hello, ${p.name}`;
-  holoLogoImg.src = p.avatar;
-  profileModal.style.display = 'grid';
-}
-
-profileBtn.addEventListener('click', openProfile);
-closeProfileBtn.addEventListener('click', ()=> profileModal.style.display='none');
-logoutBtn.addEventListener('click', ()=> { if (!confirm('Logout?')) return; logoutUser(); });
-
-editProfileBtn.addEventListener('click', ()=> { editForm.style.display='block'; });
-cancelEditBtn.addEventListener('click', ()=> { editForm.style.display='none'; });
-
-saveProfileBtn.addEventListener('click', ()=> {
-  const phone = getCurrentUser();
-  const profiles = getProfiles();
-  const p = profiles[phone] || { phone };
-  p.name = editName.value.trim() || p.name || 'User';
-  p.avatar = editAvatar.value.trim() || p.avatar || '/mnt/data/A_digital_illustration_of_a_login_screen_displays_.png';
-  profiles[phone] = p;
-  setProfiles(profiles);
-  profileModal.style.display = 'none';
-  greeting.textContent = `Hello, ${p.name}`;
-  holoLogoImg.src = p.avatar;
-});
-
-/* ---------- simple ToDo app (localStorage) ---------- */
-const taskForm = document.getElementById('taskForm');
-const taskInput = document.getElementById('taskInput');
-const taskList = document.getElementById('taskList');
-const doneList = document.getElementById('doneList');
-const counts = document.getElementById('counts');
-const addBtn = document.getElementById('addBtn');
-const floatAdd = document.getElementById('floatAdd');
-const clearCompleted = document.getElementById('clearCompleted');
-const clearAll = document.getElementById('clearAll');
-
-const LS_TASKS = 'jc_neon_tasks_v1';
-const LS_DONE = 'jc_neon_done_v1';
-
-let tasks = JSON.parse(localStorage.getItem(LS_TASKS) || '[]');
-let done = JSON.parse(localStorage.getItem(LS_DONE) || '[]');
-
-function saveAll(){ localStorage.setItem(LS_TASKS, JSON.stringify(tasks)); localStorage.setItem(LS_DONE, JSON.stringify(done)); }
-function loadAll(){ tasks = JSON.parse(localStorage.getItem(LS_TASKS) || '[]'); done = JSON.parse(localStorage.getItem(LS_DONE) || '[]'); }
-
-function renderAll(){
-  taskList.innerHTML = ''; doneList.innerHTML = '';
-  tasks.forEach((t,i)=> taskList.appendChild(createTaskEl(t,i,false)));
-  done.forEach((d,i)=> doneList.appendChild(createTaskEl(d,i,true)));
-  updateCounts();
-}
-function createTaskEl(taskObj,index,isDone=false){
-  const li = document.createElement('li');
-  li.className = 'task-item';
-  li.draggable = !isDone;
-  li.dataset.index = index;
-  const handle = document.createElement('div'); handle.className='handle'; handle.textContent='≡';
-  const txt = document.createElement('div'); txt.className='task-text'; txt.textContent = taskObj.text;
-  const actions = document.createElement('div'); actions.className='task-actions';
-  const btnDone = document.createElement('button'); btnDone.className='text-btn'; btnDone.textContent = isDone ? '↺' : '✓';
-  const btnEdit = document.createElement('button'); btnEdit.className='text-btn'; btnEdit.textContent='Edit';
-  const btnDel  = document.createElement('button'); btnDel.className='text-btn danger'; btnDel.textContent='Delete';
-  actions.appendChild(btnDone); actions.appendChild(btnEdit); actions.appendChild(btnDel);
-  li.appendChild(handle); li.appendChild(txt); li.appendChild(actions);
-  if (isDone) li.classList.add('completed');
-
-  btnEdit.addEventListener('click', ()=> {
-    const val = prompt('Edit task', taskObj.text);
-    if (val && val.trim()){ taskObj.text = val.trim(); saveAll(); renderAll(); }
-  });
-
-  btnDone.addEventListener('click', ()=> {
-    if (isDone){ const moved = done.splice(index,1)[0]; tasks.unshift(moved); } 
-    else { const moved = tasks.splice(index,1)[0]; done.unshift(moved); }
-    saveAll(); renderAll();
-  });
-
-  btnDel.addEventListener('click', ()=> {
-    li.style.transition = 'transform .22s ease, opacity .22s';
-    li.style.transform = 'translateX(20px) scale(.98)';
-    li.style.opacity = '0';
-    setTimeout(()=> {
-      if (isDone) done.splice(index,1); else tasks.splice(index,1);
-      saveAll(); renderAll();
-    },220);
-  });
-
-  if (!isDone){
-    li.addEventListener('dragstart', (e)=> { dragSrc = li; li.classList.add('dragging'); try{ e.dataTransfer.setData('text/plain', index);}catch(e){} });
-    li.addEventListener('dragend', ()=> { li.classList.remove('dragging'); });
-    li.addEventListener('dragover', (e)=> { e.preventDefault(); e.dataTransfer.dropEffect='move'; });
-    li.addEventListener('drop', (e)=> { e.preventDefault(); if (!dragSrc || dragSrc===li) return; const src = Number(dragSrc.dataset.index), dst = Number(li.dataset.index); const [m] = tasks.splice(src,1); tasks.splice(dst,0,m); saveAll(); renderAll(); });
-  }
-  return li;
-}
-let dragSrc = null;
-
-taskForm.addEventListener('submit', (e)=> {
-  e.preventDefault();
-  const txt = taskInput.value.trim();
-  if (!txt) return;
-  tasks.unshift({ text: txt, created: Date.now() });
-  taskInput.value = '';
-  saveAll(); renderAll();
-  // small confetti effect using a simple DOM flash
-  flashConfetti();
-});
-
-floatAdd.addEventListener('click', ()=> { taskInput.focus(); taskInput.classList.add('pulse-focus'); setTimeout(()=>taskInput.classList.remove('pulse-focus'),800); });
-
-clearCompleted.addEventListener('click', ()=> {
-  if (!done.length) return alert('No completed tasks to clear.');
-  if (!confirm('Clear all completed tasks?')) return;
-  done = []; saveAll(); renderAll();
-});
-clearAll.addEventListener('click', ()=> {
-  if (!tasks.length && !done.length) return;
-  if (!confirm('Clear all tasks?')) return;
-  tasks = []; done = []; saveAll(); renderAll();
-});
-
-function updateCounts(){ const total = tasks.length + done.length; document.getElementById('counts').textContent = `${tasks.length} tasks • ${done.length} done • ${total} total`; }
-
-loadAll(); renderAll();
-
-/* quick visual confetti (DOM) */
-function flashConfetti(){
-  const el = document.createElement('div');
-  el.style.position='fixed'; el.style.left='50%'; el.style.top='30%'; el.style.transform='translateX(-50%)';
-  el.style.pointerEvents='none'; el.style.zIndex=100; document.body.appendChild(el);
-  for (let i=0;i<24;i++){
-    const p = document.createElement('div'); p.style.width='8px'; p.style.height='8px'; p.style.position='absolute';
-    p.style.left=(Math.random()*160-80)+'px'; p.style.top=(Math.random()*40-20)+'px'; p.style.background = ['#00ffd2','#7a00ff','#ff4d6d'][Math.floor(Math.random()*3)];
-    p.style.opacity='0.95'; p.style.borderRadius='2px'; p.style.transform = `translateY(0) rotate(${Math.random()*360}deg)`;
-    p.style.transition='transform .9s cubic-bezier(.2,.9,.3,1), opacity .9s';
-    el.appendChild(p);
-    setTimeout(()=> { p.style.transform = `translateY(${120 + Math.random()*80}px) rotate(${Math.random()*720}deg)`; p.style.opacity='0'; }, 30 + i*8);
-  }
-  setTimeout(()=> el.remove(), 1200);
-}
-
-/* profile helpers already above in this file block */
-
-/* small theme toggle (dim) */
-const themeToggle = document.getElementById('themeToggle');
-themeToggle.addEventListener('click', ()=> {
-  if (document.documentElement.getAttribute('data-theme') === 'dim') {
-    document.documentElement.removeAttribute('data-theme');
-    themeToggle.textContent = 'Dim';
-  } else {
-    document.documentElement.setAttribute('data-theme','dim');
-    themeToggle.textContent = 'Glow';
-  }
-});
-
 </script>
-  <!-- CHATBOT FLOATING BUTTON -->
-<div id="chatbot-btn">💬</div>
-
-<!-- CHATBOT WINDOW -->
-<div id="chatbot-window">
-    <div class="chatbot-header">
-        <h3>Neon Assistant</h3>
-        <span id="chatbot-close">✖</span>
-    </div>
-    <div id="chatbot-messages"></div>
-
-    <div class="chatbot-input-area">
-        <input type="text" id="chatbot-input" placeholder="Ask something…">
-        <button id="chatbot-send">➤</button>
-    </div>
-</div>
-
 </body>
 </html>
