@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Premium Animated To-Do App</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced To-Do App with Login + AI Chatbot</title>
 
 <style>
-/* ---------------- GLOBAL STYLES ---------------- */
+/* -------------------------------------------------------
+   GLOBAL STYLING
+------------------------------------------------------- */
 * {
   margin: 0;
   padding: 0;
@@ -15,67 +17,126 @@
 }
 
 body {
+  background: linear-gradient(135deg, #1a1a1a, #000);
+  color: #fff;
+  overflow: hidden;
   height: 100vh;
-  background: radial-gradient(circle at 20% 20%, #4a00e0, transparent 40%),
-              radial-gradient(circle at 80% 80%, #8e2de2, transparent 40%),
-              linear-gradient(135deg, #1a1a1a, #000);
+}
+
+/* Animated moving background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, #4a00e0, transparent 40%),
+              radial-gradient(circle at 70% 80%, #8e2de2, transparent 40%);
   background-size: 200% 200%;
-  animation: bgMove 12s infinite alternate ease-in-out;
+  animation: bgMove 18s infinite alternate ease-in-out;
+  z-index: -1;
+}
+
+@keyframes bgMove {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+/* -------------------------------------------------------
+   LOGIN PAGE
+------------------------------------------------------- */
+#loginPage {
+  position: absolute;
+  inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+}
+
+.login-box {
+  width: 90%;
+  max-width: 350px;
+  padding: 30px;
+  border-radius: 18px;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 20px rgba(255,255,255,0.1);
+  text-align: center;
+  animation: fadeIn 0.7s ease-out;
+}
+
+.login-box input {
+  width: 100%;
+  margin-top: 15px;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  background: rgba(255,255,255,0.15);
   color: #fff;
 }
 
-/* Animated background */
-@keyframes bgMove {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+.login-box button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #4a00e0, #8e2de2);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-/* ---------------- CONTAINER ---------------- */
+.login-box button:hover {
+  transform: scale(1.05);
+}
+
+/* -------------------------------------------------------
+   MAIN APP PAGE
+------------------------------------------------------- */
+#appPage {
+  display: none;
+  padding: 20px;
+  height: 100vh;
+}
+
 .container {
+  margin: auto;
+  margin-top: 40px;
   width: 95%;
   max-width: 500px;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 30px 25px;
+  padding: 25px;
   border-radius: 20px;
+  background: rgba(255,255,255,0.08);
   backdrop-filter: blur(15px);
-  box-shadow: 0px 0px 25px rgba(255, 255, 255, 0.1);
-  animation: float 4s ease-in-out infinite;
+  animation: float 4s infinite ease-in-out;
 }
 
-/* glassmorphism floating animation */
 @keyframes float {
   0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-6px); }
   100% { transform: translateY(0px); }
 }
 
-.container h1 {
+h1 {
   text-align: center;
   margin-bottom: 20px;
-  font-size: 26px;
-  font-weight: 600;
-  letter-spacing: 1px;
 }
 
-/* ---------------- INPUT AREA ---------------- */
+/* ----- Input + button ----- */
 .input-box {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
 }
 
 .input-box input {
   flex: 1;
   padding: 14px;
   border-radius: 12px;
+  background: rgba(255,255,255,0.15);
   border: none;
   outline: none;
-  font-size: 16px;
-  background: rgba(255, 255, 255, 0.15);
   color: #fff;
 }
 
@@ -83,87 +144,198 @@ body {
   padding: 14px 20px;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(90deg, #8e2de2, #4a00e0);
+  background: linear-gradient(90deg, #4a00e0, #8e2de2);
   color: #fff;
   cursor: pointer;
-  font-size: 16px;
-  transition: 0.3s;
 }
 
-.input-box button:hover {
-  transform: scale(1.05);
-}
-
-/* ---------------- TASK LIST ---------------- */
-ul {
-  list-style: none;
-  margin-top: 10px;
-}
+/* ----- Task list ----- */
+ul { margin-top: 20px; list-style: none; }
 
 ul li {
-  background: rgba(255, 255, 255, 0.12);
-  padding: 14px 18px;
+  background: rgba(255,255,255,0.12);
+  padding: 14px;
   margin-bottom: 10px;
   border-radius: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  animation: fadeIn 0.4s ease;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0px); }
-}
-
-/* Completed task style */
-.completed {
-  text-decoration: line-through;
-  opacity: 0.5;
-}
-
-/* Buttons on each task */
 .task-btns {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .btn {
   border: none;
-  padding: 7px 10px;
+  padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 .complete-btn { background: #00c853; color: #fff; }
-.delete-btn { background: #ff1744; color: #fff; }
+.delete-btn   { background: #ff1744; color: #fff; }
 
-.btn:hover { transform: scale(1.1); }
+/* -------------------------------------------------------
+   PRIZE POPUP
+------------------------------------------------------- */
+#prizePopup {
+  position: fixed;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+}
+
+.prize-box {
+  background: rgba(255,255,255,0.15);
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  animation: scaleUp 0.4s ease-out;
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* -------------------------------------------------------
+   AI CHATBOT
+------------------------------------------------------- */
+#chatbotBtn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 16px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #8e2de2, #4a00e0);
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #fff;
+}
+
+#chatWindow {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  width: 300px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 15px;
+  backdrop-filter: blur(20px);
+  padding: 15px;
+  display: none;
+}
+
+.chat-messages {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.chat-input {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.chat-input button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #4a00e0;
+  color: white;
+}
+
 </style>
-
 </head>
 <body>
 
-<div class="container">
-  <h1>🌟 Premium To-Do List</h1>
-
-  <div class="input-box">
-    <input id="taskInput" type="text" placeholder="Enter a new task..." />
-    <button onclick="addTask()">Add</button>
+<!-- -------------------------------------------------------
+     LOGIN PAGE
+------------------------------------------------------- -->
+<div id="loginPage">
+  <div class="login-box">
+    <h2>Welcome</h2>
+    <p>Login to continue</p>
+    <input id="username" placeholder="Enter username">
+    <button onclick="login()">Login</button>
   </div>
+</div>
 
-  <ul id="taskList"></ul>
+<!-- -------------------------------------------------------
+     MAIN APP PAGE
+------------------------------------------------------- -->
+<div id="appPage">
+  <div class="container">
+    <h1>🌟 Premium To-Do List</h1>
+
+    <div class="input-box">
+      <input id="taskInput" placeholder="New task...">
+      <button onclick="addTask()">Add</button>
+    </div>
+
+    <ul id="taskList"></ul>
+  </div>
+</div>
+
+<!-- -------------------------------------------------------
+     PRIZE POPUP
+------------------------------------------------------- -->
+<div id="prizePopup">
+  <div class="prize-box">
+    <h2>🎉 Congratulations!</h2>
+    <p>You completed a task!</p>
+  </div>
+</div>
+
+<!-- -------------------------------------------------------
+     AI CHATBOT
+------------------------------------------------------- -->
+<button id="chatbotBtn" onclick="toggleChat()">💬</button>
+
+<div id="chatWindow">
+  <div class="chat-messages" id="chatMessages"></div>
+
+  <div class="chat-input">
+    <input id="chatInput" placeholder="Ask something…">
+    <button onclick="askBot()">Send</button>
+  </div>
 </div>
 
 <script>
-/* ---------------- ADD TASK ---------------- */
+/* -------------------------------------------------------
+   LOGIN LOGIC
+------------------------------------------------------- */
+function login() {
+  const username = document.getElementById("username").value.trim();
+  if (!username) return;
+
+  document.getElementById("loginPage").style.display = "none";
+  document.getElementById("appPage").style.display = "block";
+}
+
+/* -------------------------------------------------------
+   ADD TASK
+------------------------------------------------------- */
 function addTask() {
   const input = document.getElementById("taskInput");
   const text = input.value.trim();
-  if (text === "") return;
+  if (!text) return;
 
   const li = document.createElement("li");
+
   li.innerHTML = `
     <span>${text}</span>
     <div class="task-btns">
@@ -172,22 +344,60 @@ function addTask() {
     </div>
   `;
 
-  document.getElementById("taskList").appendChild(li);
+  document.getElementById("taskList").append(li);
   input.value = "";
 }
 
-/* ---------------- COMPLETE TASK ---------------- */
+/* -------------------------------------------------------
+   COMPLETE TASK (Triggers PRIZE)
+------------------------------------------------------- */
 function completeTask(btn) {
   const item = btn.parentElement.parentElement;
   item.classList.toggle("completed");
+
+  // Prize popup
+  document.getElementById("prizePopup").style.display = "flex";
+  setTimeout(() => {
+    document.getElementById("prizePopup").style.display = "none";
+  }, 1500);
 }
 
-/* ---------------- DELETE TASK ---------------- */
+/* -------------------------------------------------------
+   DELETE TASK
+------------------------------------------------------- */
 function deleteTask(btn) {
-  const item = btn.parentElement.parentElement;
-  item.style.opacity = "0";
-  item.style.transform = "translateX(20px)";
-  setTimeout(() => item.remove(), 200);
+  btn.parentElement.parentElement.remove();
+}
+
+/* -------------------------------------------------------
+   AI CHATBOT (Simple Client-side bot)
+------------------------------------------------------- */
+function toggleChat() {
+  const w = document.getElementById("chatWindow");
+  w.style.display = w.style.display === "block" ? "none" : "block";
+}
+
+function askBot() {
+  const input = document.getElementById("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+
+  const msgBox = document.getElementById("chatMessages");
+
+  msgBox.innerHTML += `<p><b>You:</b> ${text}</p>`;
+
+  let reply = "I'm not sure, but I'm learning!";
+
+  if (text.includes("hello")) reply = "Hi there! How can I help?";
+  if (text.includes("task")) reply = "You can add tasks using the Add button!";
+  if (text.includes("tips")) reply = "Tip: Keep tasks short and clear.";
+
+  setTimeout(() => {
+    msgBox.innerHTML += `<p><b>Bot:</b> ${reply}</p>`;
+    msgBox.scrollTop = msgBox.scrollHeight;
+  }, 400);
+
+  input.value = "";
 }
 </script>
 
