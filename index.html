@@ -2,55 +2,42 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Advanced To-Do WebApp</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- GOOGLE FONTS -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<title>Advanced To-Do Universe</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-/* ---------------------------------------------------
-   GLOBAL DESIGN
------------------------------------------------------*/
+/* -----------------------------------------------------
+   GLOBAL STYLES
+----------------------------------------------------- */
 body {
     margin: 0;
-    font-family: "Poppins", sans-serif;
     background: #020614;
     color: white;
+    font-family: Arial, sans-serif;
     overflow-x: hidden;
 }
 
-section {
-    display: none;
-    padding: 50px;
-}
-
-.active {
-    display: block;
-}
-
-/* NAVIGATION */
 nav {
     position: fixed;
-    top: 0;
+    top: 0; left: 0;
     width: 100%;
-    background: rgba(0, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    display: flex;
-    justify-content: space-around;
     padding: 15px;
-    border-bottom: 1px solid cyan;
-    z-index: 99;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    z-index: 100;
 }
 
 nav button {
     background: transparent;
     border: 1px solid cyan;
-    padding: 10px 20px;
+    padding: 10px 18px;
     color: cyan;
-    cursor: pointer;
     border-radius: 8px;
-    transition: 0.3s;
+    cursor: pointer;
+    transition: .3s;
 }
 
 nav button:hover {
@@ -58,274 +45,369 @@ nav button:hover {
     color: black;
 }
 
-/* FLOATING RIBBON */
-.ribbon {
-    width: 300px;
-    height: 40px;
+section {
+    display: none;
+    padding: 120px 40px;
+}
+
+.active {
+    display: block;
+}
+
+/* -----------------------------------------------------
+   FLOATING RIBBON
+----------------------------------------------------- */
+.floating-ribbon {
     position: absolute;
-    top: 20%;
-    left: -100px;
-    background: linear-gradient(45deg, #00ffff, #00ff88);
-    border-radius: 50px;
-    filter: drop-shadow(0 0 10px cyan);
-    animation: floatRibbon 8s linear infinite;
+    right: 10%;
+    top: 22%;
+    width: 260px;
+    height: 80px;
+    background: linear-gradient(90deg, rgba(0,255,255,0.5), rgba(0,255,100,0.4));
+    filter: blur(15px);
+    border-radius: 40px;
+    animation: ribbonWave 7s ease-in-out infinite;
+    opacity: 0.45;
 }
 
-@keyframes floatRibbon {
-    0% { transform: translateX(0) rotate(0deg); }
-    50% { transform: translateX(140vw) rotate(8deg); }
-    100% { transform: translateX(0) rotate(0deg); }
+@keyframes ribbonWave {
+    0%   { transform: rotate(-5deg) translateY(0); }
+    50%  { transform: rotate(5deg) translateY(-25px); }
+    100% { transform: rotate(-5deg) translateY(0); }
 }
 
-/* PAGE HEADINGS */
-h1 {
-    font-size: 40px;
-    color: cyan;
-    text-shadow: 0 0 10px cyan;
-}
-
-/* INPUTS & BUTTONS */
-input, textarea, select {
-    padding: 10px;
-    width: 300px;
-    border-radius: 8px;
+/* -----------------------------------------------------
+   HOME PAGE CARDS
+----------------------------------------------------- */
+.home-card {
+    background: rgba(255,255,255,0.05);
+    padding: 25px;
+    border-radius: 22px;
+    width: 260px;
+    text-align: center;
     border: 1px solid cyan;
-    background: transparent;
-    color: white;
+    box-shadow: 0 0 15px rgba(0,255,255,0.2);
+    transition: 0.3s;
+}
+.home-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 25px cyan;
 }
 
-button.action {
-    margin-top: 10px;
+@keyframes fadeIn {
+    from { opacity:0; transform:translateY(40px); }
+    to { opacity:1; transform:translateY(0); }
+}
+@keyframes glowText {
+    0%,100% { text-shadow:0 0 10px cyan; }
+    50% { text-shadow:0 0 25px #00ffae; }
+}
+
+/* -----------------------------------------------------
+   BUTTONS
+----------------------------------------------------- */
+.action {
     background: cyan;
-    color: black;
-    padding: 10px 20px;
     border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* CHATBOT */
-.chat-box {
-    background: rgba(255,255,255,0.1);
-    padding: 20px;
-    border-radius: 20px;
-    width: 400px;
-}
-
-/* TODO LIST */
-.task {
-    margin: 10px 0;
-    padding: 10px;
-    background: rgba(0,255,255,0.1);
-    border: 1px solid cyan;
-    border-radius: 8px;
-}
-.task.completed {
-    background: rgba(0,255,0,0.2);
-    text-decoration: line-through;
-}
-
-/* ALARM */
-.alarm-box {
-    padding: 20px;
-    width: 300px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 15px;
-}
-
-/* FEED / COMMUNITY GALLERY */
-.gallery img, .gallery video {
-    width: 200px;
-    margin: 10px;
+    color: black;
+    padding: 15px 30px;
     border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.action:hover {
+    background: #00ffaa;
+}
+
+/* -----------------------------------------------------
+   CHATBOT BOX
+----------------------------------------------------- */
+.chat-box {
+    background: rgba(255,255,255,0.05);
+    padding: 25px;
+    width: 70%;
+    border-radius: 12px;
+    border: 1px solid cyan;
+    margin-top: 20px;
+}
+
+/* -----------------------------------------------------
+   TO-DO LIST
+----------------------------------------------------- */
+.todo-box {
+    background: rgba(255,255,255,0.07);
+    padding: 20px;
+    border-radius: 15px;
+    width: 70%;
+    border: 1px solid #00ffaa;
+}
+
+.todo-item {
+    padding: 10px;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
 }
 </style>
 
 </head>
 <body>
 
-<!-- NAVIGATION -->
+<!-- -----------------------------------------------------
+     NAVIGATION
+------------------------------------------------------ -->
 <nav>
     <button onclick="show('home')">Home</button>
     <button onclick="show('login')">Login</button>
     <button onclick="show('todo')">To-Do</button>
     <button onclick="show('dashboard')">Dashboard</button>
+    <button onclick="show('chatbot')">AI Chatbot</button>
     <button onclick="show('alarm')">Alarm</button>
-    <button onclick="show('chatbot')">Chatbot</button>
-    <button onclick="show('faq')">FAQ</button>
-    <button onclick="show('feedback')">Feedback</button>
-    <button onclick="show('technews')">Tech News</button>
-    <button onclick="show('music')">Music</button>
-    <button onclick="show('linkedin')">LinkedIn</button>
-    <button onclick="show('community')">Community</button>
 </nav>
 
-<!-- FLOATING RIBBON -->
-<div class="ribbon"></div>
-
-<!-- ---------------------------------------------------
-     HOME
------------------------------------------------------ -->
+<!-- -----------------------------------------------------
+     HOME PAGE
+------------------------------------------------------ -->
 <section id="home" class="active">
-    <h1>Welcome to the Ultimate To-Do WebApp</h1>
-    <p>Stay productive. Stay motivated. Stay rewarded.</p>
+
+<div class="floating-ribbon"></div>
+
+<div style="
+        text-align:center;
+        margin-top:120px;
+        padding:40px;
+        background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(0,255,100,0.15));
+        border-radius:30px;
+        box-shadow:0 0 40px rgba(0,255,255,0.4);
+        animation: fadeIn 2s ease;
+    ">
+    <h1 style="font-size:55px; margin-bottom:10px; color:#00f7ff; text-shadow:0 0 20px cyan;">
+        Welcome to Your Productivity Universe 🌌
+    </h1>
+
+    <p style="font-size:22px; opacity:0.8; animation: glowText 3s infinite;">
+        Plan Smarter • Work Faster • Grow Consistently
+    </p>
+
+    <div style="margin-top:40px;">
+        <button class="action" onclick="show('todo')">Start Tasks</button>
+        <button class="action" onclick="show('dashboard')">See Progress</button>
+        <button class="action" onclick="show('chatbot')">Ask AI</button>
+    </div>
+</div>
+
+<div style="display:flex; justify-content:center; margin-top:60px; gap:20px;">
+    <div class="home-card">
+        <h2>✔ Smart To-Do</h2>
+        <p>Gamified rewards & easy tracking.</p>
+    </div>
+    <div class="home-card">
+        <h2>🤖 AI Chat Assistant</h2>
+        <p>Ask anything instantly.</p>
+    </div>
+    <div class="home-card">
+        <h2>⏰ Smart Alarm</h2>
+        <p>Custom tunes & reminders.</p>
+    </div>
+</div>
+
 </section>
 
-<!-- LOGIN -->
+<!-- -----------------------------------------------------
+     LOGIN PAGE (UI Only)
+------------------------------------------------------ -->
 <section id="login">
-    <h1>Login</h1>
-    <input type="email" placeholder="Enter your email"><br>
-    <button class="action">Connect with Google</button>
+<h1>Login</h1>
+<p>Enter your email to continue</p>
+
+<input type="email" placeholder="yourname@gmail.com" style="
+    width:300px; padding:12px; border-radius:10px; border:none; margin-bottom:20px;
+">
+<br>
+<button class="action" onclick="alert('Login feature requires backend — UI only working.')">
+Continue
+</button>
 </section>
 
-<!-- TODO LIST -->
+<!-- -----------------------------------------------------
+     TO-DO LIST
+------------------------------------------------------ -->
 <section id="todo">
-    <h1>Your Tasks</h1>
-    <input id="taskInput" placeholder="Enter task">
-    <button class="action" onclick="addTask()">Add Task</button>
+<h1>Your Tasks</h1>
 
-    <div id="taskList"></div>
+<div class="todo-box">
+    <input id="taskInput" placeholder="Enter new task..." style="padding:10px; width:60%; border-radius:10px;">
+    <button class="action" onclick="addTask()">Add</button>
+
+    <div id="taskList" style="margin-top:20px;"></div>
+</div>
 </section>
 
-<!-- DASHBOARD -->
+<!-- -----------------------------------------------------
+     DASHBOARD
+------------------------------------------------------ -->
 <section id="dashboard">
-    <h1>Dashboard</h1>
-    <p>Total Tasks Completed: <span id="completedCount">0</span></p>
-    <p>Rewards Earned: <span id="rewards">0</span> ⭐</p>
+<h1>Your Progress</h1>
+<p>Total tasks completed: <span id="completeCount">0</span></p>
+<p>Total tasks pending: <span id="pendingCount">0</span></p>
 </section>
 
-<!-- ALARM -->
-<section id="alarm">
-    <h1>Alarm Clock</h1>
-    <div class="alarm-box">
-        <input id="alarmTime" type="time">
-        <button class="action" onclick="setAlarm()">Set Alarm</button>
-        <p id="alarmStatus"></p>
-    </div>
-</section>
-
-<!-- CHATBOT -->
+<!-- -----------------------------------------------------
+     AI CHATBOT
+------------------------------------------------------ -->
 <section id="chatbot">
-    <h1>AI Chatbot</h1>
-    <div class="chat-box">
-        <textarea id="chatInput" placeholder="Ask something..."></textarea><br>
-        <button class="action" onclick="fakeReply()">Send</button>
-        <p id="chatReply"></p>
-    </div>
+<h1>AI Chatbot</h1>
+
+<div class="chat-box">
+    <input id="chatInput" placeholder="Ask something..." 
+    style="padding:10px; width:70%; border-radius:10px;">
+    <button class="action" onclick="aiReply()">Send</button>
+
+    <p id="chatReply" style="margin-top:20px; white-space:pre-wrap;"></p>
+</div>
 </section>
 
-<!-- FAQ -->
-<section id="faq">
-    <h1>FAQs</h1>
-    <p>Q: Is this app free?<br>A: Yes.</p>
-    <p>Q: Will my data be safe?<br>A: 100% safe.</p>
+<!-- -----------------------------------------------------
+     ALARM CLOCK
+------------------------------------------------------ -->
+<section id="alarm">
+<h1>Smart Alarm</h1>
+
+<div class="chat-box">
+    <label>Date:</label><br>
+    <input id="alarmDate" type="date" style="padding:10px; border-radius:10px;"><br><br>
+
+    <label>Time:</label><br>
+    <input id="alarmTime" type="time" style="padding:10px; border-radius:10px;"><br><br>
+
+    <label>Music:</label><br>
+    <select id="alarmSound" style="padding:10px; border-radius:10px;">
+        <option value="eng">English Beat</option>
+        <option value="hin">Hindi Calm Tune</option>
+        <option value="mar">Marathi Song</option>
+    </select><br><br>
+
+    <button class="action" onclick="setAlarm()">Set Alarm</button>
+
+    <p id="alarmStatus"></p>
+</div>
 </section>
 
-<!-- FEEDBACK -->
-<section id="feedback">
-    <h1>Feedback</h1>
-    <textarea placeholder="Your feedback..."></textarea><br>
-    <button class="action">Submit</button>
-</section>
-
-<!-- TECH NEWS -->
-<section id="technews">
-    <h1>Tech News</h1>
-    <button class="action" onclick="loadNews()">Load Latest News</button>
-    <div id="news"></div>
-</section>
-
-<!-- MUSIC -->
-<section id="music">
-    <h1>Music While You Work</h1>
-    <ul>
-        <li><a href="https://www.youtube.com/watch?v=2Vv-BfVoq4g" target="_blank">English Playlist</a></li>
-        <li><a href="https://www.youtube.com/watch?v=8ybW48rKBME" target="_blank">Hindi Playlist</a></li>
-        <li><a href="https://www.youtube.com/watch?v=Z-7E8p6R0Yg" target="_blank">Marathi Playlist</a></li>
-    </ul>
-</section>
-
-<!-- LINKEDIN -->
-<section id="linkedin">
-    <h1>Grow Your Network</h1>
-    <button class="action" onclick="window.open('https://www.linkedin.com','_blank')">Open LinkedIn</button>
-</section>
-
-<!-- COMMUNITY -->
-<section id="community">
-    <h1>Community Posts</h1>
-    <input type="file" accept="image/*,video/*" onchange="uploadMedia(event)">
-    <div class="gallery" id="gallery"></div>
-</section>
-
-<!-- ---------------------------------------------------
-     SCRIPT
------------------------------------------------------ -->
+<!-- -----------------------------------------------------
+     JAVASCRIPT FUNCTIONS
+------------------------------------------------------ -->
 <script>
-function show(id) {
+function show(id){
     document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
 }
 
-/* TODO SYSTEM */
-let completed = 0;
-let rewards = 0;
+/* -----------------------------
+   TO-DO LIST LOGIC
+----------------------------- */
+let completed = 0, pending = 0;
 
-function addTask() {
-    const val = document.getElementById("taskInput").value.trim();
-    if (!val) return;
+function addTask(){
+    const input = document.getElementById("taskInput");
+    if(!input.value.trim()) return;
+
+    pending++;
 
     const div = document.createElement("div");
-    div.className = "task";
-    div.innerHTML = val;
-    div.onclick = () => {
-        div.classList.toggle("completed");
-        if (div.classList.contains("completed")) {
-            completed++;
-            rewards += 5;
-        } else {
-            completed--;
-            rewards -= 5;
-        }
-        document.getElementById("completedCount").innerText = completed;
-        document.getElementById("rewards").innerText = rewards;
-    };
+    div.className = "todo-item";
+    div.innerHTML = `
+        ${input.value}
+        <button onclick="completeTask(this)" style="background:green; border:none; padding:6px; border-radius:8px;">Done</button>
+    `;
 
     document.getElementById("taskList").appendChild(div);
-    document.getElementById("taskInput").value = "";
+    input.value = "";
+
+    updateCounts();
 }
 
-/* ALARM */
-function setAlarm() {
+function completeTask(btn){
+    btn.parentElement.remove();
+    completed++;
+    pending--;
+    updateCounts();
+}
+
+function updateCounts(){
+    document.getElementById("completeCount").innerText = completed;
+    document.getElementById("pendingCount").innerText = pending;
+}
+
+/* -----------------------------
+   AI CHATBOT (REAL API)
+----------------------------- */
+async function aiReply(){
+    const input = document.getElementById("chatInput").value;
+
+    if(!input.trim()) return;
+
+    document.getElementById("chatReply").innerText = "Thinking...";
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization":"Bearer pk-oai-browser-example-key"
+        },
+        body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{role:"user", content:input}]
+        })
+    });
+
+    const data = await res.json();
+
+    document.getElementById("chatReply").innerText =
+        data.choices[0].message.content;
+}
+
+/* -----------------------------
+   ALARM CLOCK
+----------------------------- */
+function setAlarm(){
+    const date = document.getElementById("alarmDate").value;
     const time = document.getElementById("alarmTime").value;
+    const sound = document.getElementById("alarmSound").value;
+
+    if(!date || !time){
+        alert("Select date & time!");
+        return;
+    }
+
+    const alarmTime = new Date(date + " " + time);
+    const now = new Date();
+
+    if(alarmTime <= now){
+        alert("Invalid time!");
+        return;
+    }
+
     document.getElementById("alarmStatus").innerText = "Alarm set!";
-    const alarm = new Audio("https://www2.cs.uic.edu/~i101/SoundFiles/StarWars3.wav");
-    setInterval(() => {
+
+    const music = {
+        eng: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/FKJ/Oddysee/FKJ_-_05_-_Skyline.mp3",
+        hin: "https://pagalfree.com/musics/128-Dil%20Diyan%20Gallan%20-%20Tiger%20Zinda%20Hai%20128%20Kbps.mp3",
+        mar: "https://raag.fm/files/mp3/128/MKSN/56513/Title%20Track%20-%20Mumbai%20Saga%20128%20Kbps.mp3"
+    };
+
+    const audio = new Audio(music[sound]);
+
+    const check = setInterval(() => {
         const now = new Date();
-        if (now.toTimeString().slice(0,5) === time) alarm.play();
+        if(now >= alarmTime){
+            audio.play();
+            document.body.style.background = "red";
+            setTimeout(()=> document.body.style.background="#020614", 3000);
+            clearInterval(check);
+        }
     }, 1000);
-}
-
-/* CHATBOT */
-function fakeReply() {
-    const reply = "This is a placeholder AI. Real AI can be added.";
-    document.getElementById("chatReply").innerText = reply;
-}
-
-/* TECH NEWS */
-function loadNews() {
-    document.getElementById("news").innerHTML =
-        "<p>• Apple releases new AI chipset<br>• Google announces Gemini update<br>• India launches supercomputing initiative</p>";
-}
-
-/* COMMUNITY UPLOAD */
-function uploadMedia(event) {
-    const file = event.target.files[0];
-    const url = URL.createObjectURL(file);
-    const media = file.type.startsWith("video") ?
-        `<video src="${url}" controls></video>` :
-        `<img src="${url}">`;
-    document.getElementById("gallery").innerHTML += media;
 }
 </script>
 
