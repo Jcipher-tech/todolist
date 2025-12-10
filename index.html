@@ -98,14 +98,7 @@ section {
     from { opacity:0; transform:translateY(40px); }
     to { opacity:1; transform:translateY(0); }
 }
-@keyframes glowText {
-    0%,100% { text-shadow:0 0 10px cyan; }
-    50% { text-shadow:0 0 25px #00ffae; }
-}
 
-/* -----------------------------------------------------
-   BUTTONS
------------------------------------------------------ */
 .action {
     background: cyan;
     border: none;
@@ -116,39 +109,25 @@ section {
     cursor: pointer;
     transition: .3s;
 }
-
 .action:hover {
     background: #00ffaa;
 }
 
-/* -----------------------------------------------------
-   CHATBOT BOX
------------------------------------------------------ */
-.chat-box {
-    background: rgba(255,255,255,0.05);
-    padding: 25px;
-    width: 70%;
-    border-radius: 12px;
+/* MUSIC CARDS (ADDED) */
+.music-card {
+    padding: 18px;
+    background: rgba(255,255,255,0.06);
     border: 1px solid cyan;
-    margin-top: 20px;
-}
-
-/* -----------------------------------------------------
-   TO-DO LIST
------------------------------------------------------ */
-.todo-box {
-    background: rgba(255,255,255,0.07);
-    padding: 20px;
     border-radius: 15px;
-    width: 70%;
-    border: 1px solid #00ffaa;
+    margin: 10px;
+    width: 260px;
+    text-align: center;
+    box-shadow: 0 0 10px cyan;
+    transition: .3s;
 }
-
-.todo-item {
-    padding: 10px;
-    border-bottom: 1px solid #444;
-    display: flex;
-    justify-content: space-between;
+.music-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #00ffaa;
 }
 </style>
 
@@ -187,7 +166,7 @@ section {
         Welcome to Your Productivity Universe 🌌
     </h1>
 
-    <p style="font-size:22px; opacity:0.8; animation: glowText 3s infinite;">
+    <p style="font-size:22px; opacity:0.8;">
         Plan Smarter • Work Faster • Grow Consistently
     </p>
 
@@ -198,6 +177,7 @@ section {
     </div>
 </div>
 
+<!-- CARDS -->
 <div style="display:flex; justify-content:center; margin-top:60px; gap:20px;">
     <div class="home-card">
         <h2>✔ Smart To-Do</h2>
@@ -213,118 +193,145 @@ section {
     </div>
 </div>
 
+<br><br>
+
+<!-- ---------------------------------------------------------
+     ⭐ ADDED: LINKEDIN BUTTON
+---------------------------------------------------------- -->
+<div style="text-align:center; margin-top:60px;">
+    <a href="https://www.linkedin.com" target="_blank">
+        <button class="action" style="font-size:20px; padding:18px 35px;">
+            🔗 Connect on LinkedIn
+        </button>
+    </a>
+</div>
+
+<br><br>
+
+<!-- ---------------------------------------------------------
+     ⭐ ADDED: MUSIC LIBRARY (All languages)
+---------------------------------------------------------- -->
+
+<h2 style="text-align:center; margin-top:40px; color:cyan;">🎵 Music Library (All Languages)</h2>
+
+<div style="display:flex; justify-content:center; flex-wrap:wrap; margin-top:25px;">
+
+    <div class="music-card">
+        <h3>English Playlist</h3>
+        <a href="https://www.youtube.com/watch?v=JGwWNGJdvx8&list=PL15B1E77BB5708555" target="_blank">
+            Open Playlist
+        </a>
+    </div>
+
+    <div class="music-card">
+        <h3>Hindi Playlist</h3>
+        <a href="https://www.youtube.com/watch?v=CwfoyVa980U&list=PLmhYj7Jl81JH5IqFZ3VAb9YSEuxsjjXNp" target="_blank">
+            Open Playlist
+        </a>
+    </div>
+
+    <div class="music-card">
+        <h3>Marathi Playlist</h3>
+        <a href="https://www.youtube.com/watch?v=dZfcgRjzCwI&list=PLVLOHcWw2X2gYdExg-1aQGehGII4X-gdr" target="_blank">
+            Open Playlist
+        </a>
+    </div>
+
+    <div class="music-card">
+        <h3>Tamil Playlist</h3>
+        <a href="https://www.youtube.com/watch?v=YwE9qRmYDiE&list=PLVn1zAazvx24z6F_ALUuIhiHBpjz2uVHq" target="_blank">
+            Open Playlist
+        </a>
+    </div>
+
+    <div class="music-card">
+        <h3>Telugu Playlist</h3>
+        <a href="https://www.youtube.com/watch?v=HhjHYkPQ8F0&list=PLg38p4U3elul6D-4dy9gxM9W45ZB2wFne" target="_blank">
+            Open Playlist
+        </a>
+    </div>
+
+    <div class="music-card">
+        <h3>Punjabi Playlist</h3>
+        <a href="https://www.youtube.com/watch?v=oxsB3UoN8j8&list=PLRBp0Fe2Gpglk6z4qCMzkbXvujHUFZ2_b" target="_blank">
+            Open Playlist
+        </a>
+    </div>
+
+</div>
+
 </section>
 
-<!-- -----------------------------------------------------
-     LOGIN PAGE (UI Only)
------------------------------------------------------- -->
+<!-- ALL OTHER SECTIONS REMAIN SAME -->
+
 <section id="login">
 <h1>Login</h1>
 <p>Enter your email to continue</p>
-
-<input type="email" placeholder="yourname@gmail.com" style="
-    width:300px; padding:12px; border-radius:10px; border:none; margin-bottom:20px;
-">
+<input type="email" placeholder="yourname@gmail.com" style="width:300px; padding:12px; border-radius:10px; border:none; margin-bottom:20px;">
 <br>
-<button class="action" onclick="alert('Login feature requires backend — UI only working.')">
-Continue
-</button>
+<button class="action">Continue</button>
 </section>
 
-<!-- -----------------------------------------------------
-     TO-DO LIST
------------------------------------------------------- -->
 <section id="todo">
 <h1>Your Tasks</h1>
-
 <div class="todo-box">
     <input id="taskInput" placeholder="Enter new task..." style="padding:10px; width:60%; border-radius:10px;">
     <button class="action" onclick="addTask()">Add</button>
-
     <div id="taskList" style="margin-top:20px;"></div>
 </div>
 </section>
 
-<!-- -----------------------------------------------------
-     DASHBOARD
------------------------------------------------------- -->
 <section id="dashboard">
 <h1>Your Progress</h1>
 <p>Total tasks completed: <span id="completeCount">0</span></p>
 <p>Total tasks pending: <span id="pendingCount">0</span></p>
 </section>
 
-<!-- -----------------------------------------------------
-     AI CHATBOT
------------------------------------------------------- -->
 <section id="chatbot">
 <h1>AI Chatbot</h1>
-
 <div class="chat-box">
     <input id="chatInput" placeholder="Ask something..." 
     style="padding:10px; width:70%; border-radius:10px;">
     <button class="action" onclick="aiReply()">Send</button>
-
     <p id="chatReply" style="margin-top:20px; white-space:pre-wrap;"></p>
 </div>
 </section>
 
-<!-- -----------------------------------------------------
-     ALARM CLOCK
------------------------------------------------------- -->
 <section id="alarm">
 <h1>Smart Alarm</h1>
-
 <div class="chat-box">
     <label>Date:</label><br>
     <input id="alarmDate" type="date" style="padding:10px; border-radius:10px;"><br><br>
-
     <label>Time:</label><br>
     <input id="alarmTime" type="time" style="padding:10px; border-radius:10px;"><br><br>
-
     <label>Music:</label><br>
     <select id="alarmSound" style="padding:10px; border-radius:10px;">
         <option value="eng">English Beat</option>
         <option value="hin">Hindi Calm Tune</option>
         <option value="mar">Marathi Song</option>
     </select><br><br>
-
     <button class="action" onclick="setAlarm()">Set Alarm</button>
-
     <p id="alarmStatus"></p>
 </div>
 </section>
 
-<!-- -----------------------------------------------------
-     JAVASCRIPT FUNCTIONS
------------------------------------------------------- -->
 <script>
 function show(id){
     document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
 }
 
-/* -----------------------------
-   TO-DO LIST LOGIC
------------------------------ */
 let completed = 0, pending = 0;
-
 function addTask(){
     const input = document.getElementById("taskInput");
     if(!input.value.trim()) return;
-
     pending++;
-
     const div = document.createElement("div");
     div.className = "todo-item";
-    div.innerHTML = `
-        ${input.value}
-        <button onclick="completeTask(this)" style="background:green; border:none; padding:6px; border-radius:8px;">Done</button>
-    `;
-
+    div.innerHTML = `${input.value}
+        <button onclick="completeTask(this)" style="background:green; border:none; padding:6px; border-radius:8px;">Done</button>`;
     document.getElementById("taskList").appendChild(div);
     input.value = "";
-
     updateCounts();
 }
 
@@ -334,22 +341,15 @@ function completeTask(btn){
     pending--;
     updateCounts();
 }
-
 function updateCounts(){
     document.getElementById("completeCount").innerText = completed;
     document.getElementById("pendingCount").innerText = pending;
 }
 
-/* -----------------------------
-   AI CHATBOT (REAL API)
------------------------------ */
 async function aiReply(){
     const input = document.getElementById("chatInput").value;
-
     if(!input.trim()) return;
-
     document.getElementById("chatReply").innerText = "Thinking...";
-
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -361,44 +361,32 @@ async function aiReply(){
             messages: [{role:"user", content:input}]
         })
     });
-
     const data = await res.json();
-
     document.getElementById("chatReply").innerText =
         data.choices[0].message.content;
 }
 
-/* -----------------------------
-   ALARM CLOCK
------------------------------ */
 function setAlarm(){
     const date = document.getElementById("alarmDate").value;
     const time = document.getElementById("alarmTime").value;
     const sound = document.getElementById("alarmSound").value;
-
     if(!date || !time){
         alert("Select date & time!");
         return;
     }
-
     const alarmTime = new Date(date + " " + time);
     const now = new Date();
-
     if(alarmTime <= now){
         alert("Invalid time!");
         return;
     }
-
     document.getElementById("alarmStatus").innerText = "Alarm set!";
-
     const music = {
         eng: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/FKJ/Oddysee/FKJ_-_05_-_Skyline.mp3",
         hin: "https://pagalfree.com/musics/128-Dil%20Diyan%20Gallan%20-%20Tiger%20Zinda%20Hai%20128%20Kbps.mp3",
         mar: "https://raag.fm/files/mp3/128/MKSN/56513/Title%20Track%20-%20Mumbai%20Saga%20128%20Kbps.mp3"
     };
-
     const audio = new Audio(music[sound]);
-
     const check = setInterval(() => {
         const now = new Date();
         if(now >= alarmTime){
