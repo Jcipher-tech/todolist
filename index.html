@@ -1,260 +1,234 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Advanced To-Do WebApp</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Advanced To-Do — Pro</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-    body {
-        margin: 0;
-        font-family: 'Poppins', sans-serif;
-        background: #020c1b;
-        color: white;
-        overflow-x: hidden;
-    }
+:root{
+  --bg1:#020614; --bg2:#03192a;
+  --accent1:#06b6d4; --accent2:#10b981; --muted:#9aa3b2;
+  --glass: rgba(255,255,255,0.03);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:"Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial;color:#e6eef8;background:
+ radial-gradient(700px 400px at 10% 20%, rgba(6,182,212,0.03), transparent),
+ radial-gradient(600px 300px at 90% 80%, rgba(16,185,129,0.02), transparent),
+ linear-gradient(180deg,var(--bg1),var(--bg2));-webkit-font-smoothing:antialiased}
+nav{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;gap:18px;padding:12px 20px;background:linear-gradient(180deg,rgba(0,0,0,0.35),rgba(0,0,0,0.2));backdrop-filter:blur(8px);z-index:999;border-bottom:1px solid rgba(255,255,255,0.02)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(90deg,var(--accent1),var(--accent2));box-shadow:0 12px 40px rgba(6,182,212,0.06)}
+.navlinks{display:flex;gap:8px;margin-left:12px}
+.navlinks button{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--accent1);padding:8px 12px;border-radius:10px;cursor:pointer}
+.navlinks button.active{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#001}
 
-    /* Floating Ribbon */
-    .floating-ribbon {
-        position: absolute;
-        top: 30%;
-        left: -150px;
-        width: 400px;
-        height: 40px;
-        background: linear-gradient(90deg, #00eaff, #0099ff);
-        transform: rotate(-45deg);
-        animation: float 6s infinite ease-in-out;
-        opacity: 0.4;
-        border-radius: 20px;
-    }
-    @keyframes float {
-        0%, 100% { left: -150px; top: 30%; }
-        50% { left: -120px; top: 28%; }
-    }
+/* Ribbon */
+.ribbon{position:fixed;right:6%;top:18%;width:300px;height:80px;border-radius:40px;background:linear-gradient(90deg,rgba(6,182,212,0.32),rgba(16,185,129,0.28));filter:blur(12px);animation:ribbonWave 8s ease-in-out infinite;z-index:0;pointer-events:none}
+@keyframes ribbonWave{0%{transform:rotate(-6deg) translateY(0)}50%{transform:rotate(6deg) translateY(-30px)}100%{transform:rotate(-6deg) translateY(0)}}
 
-    /* Navigation */
-    nav {
-        display: flex;
-        justify-content: space-between;
-        padding: 20px 40px;
-        background: rgba(255,255,255,0.05);
-        backdrop-filter: blur(10px);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-    nav a {
-        color: #00eaff;
-        margin: 0 15px;
-        text-decoration: none;
-        font-size: 18px;
-    }
+/* layout */
+.container{max-width:1100px;margin:88px auto;padding:20px;position:relative;z-index:2}
+.header-hero{display:flex;gap:24px;align-items:center;flex-wrap:wrap;padding:28px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.03);box-shadow:0 18px 40px rgba(6,182,212,0.03)}
+.h-title{font-size:38px;margin:0;color:var(--accent1);text-shadow:0 8px 40px rgba(6,182,212,0.06)}
+.h-sub{margin-top:6px;color:var(--muted)}
 
-    section {
-        padding: 60px 50px;
-    }
+/* cards */
+.cards{display:flex;gap:16px;margin-top:22px;flex-wrap:wrap}
+.card{flex:0 1 260px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 12px 30px rgba(0,0,0,0.5)}
+.card h3{margin:0 0 8px 0;color:#e6fdf7}
 
-    h1, h2 {
-        color: #00eaff;
-    }
+/* buttons and inputs */
+.btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));border:none;color:#001;padding:10px 14px;border-radius:10px;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+.input, textarea, select {padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;width:100%}
 
-    /* To-Do App */
-    #todoInput {
-        padding: 10px;
-        width: 300px;
-        border-radius: 8px;
-        border: none;
-    }
-    button {
-        padding: 10px 20px;
-        background: #00eaff;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-    }
+/* small utils */
+.small{font-size:13px;color:var(--muted)}
+.right{margin-left:auto}
+.hidden{display:none}
 
-    /* Chatbot Box */
-    #chatbot_box {
-        width: 400px;
-        height: 400px;
-        background: rgba(255,255,255,0.08);
-        border-radius: 12px;
-        padding: 15px;
-        overflow-y: auto;
-        margin-top: 20px;
-    }
-
-    /* Alarm */
-    .alarm-box {
-        background: rgba(255,255,255,0.1);
-        padding: 20px;
-        border-radius: 10px;
-        width: 300px;
-    }
-
-    /* LinkedIn & Music section */
-    .card {
-        background: rgba(255,255,255,0.07);
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
+/* responsive */
+@media (max-width:920px){
+  .header-hero{flex-direction:column;align-items:flex-start}
+  .ribbon{display:none}
+  nav{overflow:auto}
+}
 </style>
 </head>
-
 <body>
 
-<div class="floating-ribbon"></div>
+<!-- ribbon -->
+<div class="ribbon" aria-hidden="true"></div>
 
-<!-- NAVIGATION -->
+<!-- NAV -->
 <nav>
-    <div><strong style="font-size:22px;color:#00eaff;">ToDoX</strong></div>
-    <div>
-        <a href="#home">Home</a>
-        <a href="#todo">To-Do</a>
-        <a href="#music">Music</a>
-        <a href="#linkedin">LinkedIn</a>
-        <a href="#technews">Tech News</a>
-        <a href="#alarm">Alarm</a>
-        <a href="#chatbot">Chatbot</a>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"></div>
+    <div style="display:flex;flex-direction:column;line-height:1">
+      <strong style="font-size:14px">ToDoX</strong>
+      <span class="small">Advanced To-Do</span>
     </div>
+  </div>
+
+  <div style="margin-left:14px" class="navlinks" id="navlinks">
+    <button data-target="home" class="active">Home</button>
+    <button data-target="todo">To-Do</button>
+    <button data-target="dashboard">Dashboard</button>
+    <button data-target="alarm">Alarm</button>
+    <button data-target="chat">AI Chat</button>
+    <button data-target="music">Music</button>
+    <button data-target="news">Tech News</button>
+    <button data-target="connect">LinkedIn</button>
+    <button data-target="media">Inspire</button>
+    <button data-target="profile">Profile</button>
+  </div>
 </nav>
 
-<!-- HOME -->
-<section id="home">
-    <h1>Welcome to Your Productivity Hub</h1>
-    <p>Track tasks • Get rewards • Listen to music • Connect with people • View tech news • Talk to AI & more.</p>
-</section>
+<div class="container">
 
-<!-- TODO SECTION -->
-<section id="todo">
-    <h2>Your Tasks</h2>
-    
-    <input id="todoInput" type="text" placeholder="Add a new task" />
-    <button onclick="addTask()">Add</button>
+  <!-- HOME -->
+  <section id="home" class="section active">
+    <div class="header-hero">
+      <div style="flex:1;z-index:2">
+        <h1 class="h-title">Plan smarter. Finish faster. Get rewarded.</h1>
+        <div class="h-sub">Dark neon theme with AI, alarms, music & social features — single-file demo.</div>
 
-    <ul id="todoList"></ul>
-</section>
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="navigate('todo')">Open To-Do</button>
+          <button class="btn" onclick="navigate('chat')">Ask AI</button>
+          <button class="btn ghost" onclick="navigate('music')">Play Music</button>
+        </div>
 
-<!-- MUSIC SECTION -->
-<section id="music">
-    <h2>Music for Work (All Languages)</h2>
+        <div class="cards" aria-hidden="false">
+          <div class="card">
+            <h3>Smart Tasks</h3>
+            <div class="small">Subtasks, priorities, completion rewards.</div>
+          </div>
+          <div class="card">
+            <h3>AI Assistant</h3>
+            <div class="small">Generate tasks, explain code & more.</div>
+          </div>
+          <div class="card">
+            <h3>Community</h3>
+            <div class="small">Share images & short videos.</div>
+          </div>
+        </div>
+      </div>
 
-    <div class="card">
-        <h3>🎧 Hindi Playlist</h3>
-        <a href="https://youtube.com/playlist?list=PL9bw4S5ePsEEfFHn5Vf3L7hIwrKyYVJZZ" target="_blank">Open Hindi Playlist</a>
+      <div style="width:360px;z-index:2">
+        <div class="card">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="width:64px;height:64px;border-radius:12px;background:linear-gradient(90deg,var(--accent1),var(--accent2));display:grid;place-items:center;font-weight:700">XP</div>
+            <div>
+              <div class="small">Total XP</div>
+              <div id="xpTotal" style="font-weight:700;font-size:20px">0</div>
+              <div class="small">Level <span id="xpLevel">1</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px" class="small">Daily tip</div>
+          <div id="dailyTip" style="margin-top:6px;font-weight:600">Start with the toughest task first.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The rest of the app (To-Do, Dashboard, Alarm, Chat, Music, News, Connect, Media, Profile)
+       will be continued in PART B, C and D. -->
+
+</div>
+
+<!-- Part A ends here. Continue with PART B. -->
+  <!-- TO-DO -->
+  <section id="todo" class="section hidden">
+    <h2>To-Do List</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <input class="input" id="taskInput" placeholder="Add a task..." />
+      <select class="input" id="prioritySelect" style="max-width:160px">
+        <option value="normal">Normal</option>
+        <option value="high">High 🔥</option>
+      </select>
+      <button class="btn" onclick="addTask()">Add</button>
     </div>
 
-    <div class="card">
-        <h3>🎧 Marathi Playlist</h3>
-        <a href="https://youtube.com/playlist?list=PLo0aF7H0uP_2Pe1wqjZka6pLH87xprwqY" target="_blank">Open Marathi Playlist</a>
+    <div style="margin-top:20px">
+      <div id="taskList" class="small">No tasks yet.</div>
     </div>
+  </section>
 
-    <div class="card">
-        <h3>🎧 English Playlist</h3>
-        <a href="https://youtube.com/playlist?list=PL6NdkXsPL07KNmJvC5wDsJzi0aKBslZxj" target="_blank">Open English Playlist</a>
-    </div>
-</section>
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="section hidden">
+    <h2>Your Progress</h2>
+    <div class="card" style="margin-top:14px">
+      <div class="small">Tasks Completed</div>
+      <div id="completedCount" style="font-size:30px;font-weight:800">0</div>
 
-<!-- LINKEDIN SECTION -->
-<section id="linkedin">
-    <h2>LinkedIn Connect</h2>
-    
-    <div class="card">
-        <h3>🔗 Connect Your Profile</h3>
-        <p>Grow your network & connect with similar people.</p>
-        <a href="https://linkedin.com" target="_blank">
-            <button>Open LinkedIn</button>
-        </a>
-    </div>
-</section>
+      <div class="small" style="margin-top:8px">XP Earned</div>
+      <div id="xpDashboard" style="font-size:26px;font-weight:700">0</div>
 
-<!-- TECH NEWS SECTION -->
-<section id="technews">
-    <h2>Latest Tech News</h2>
-    <p>⚠ Placeholder added — API integration available if you want live news.</p>
-    <div class="card">
-        <p>⭐ AI revolution in 2025 is transforming industries...</p>
-        <p>⭐ Google, OpenAI & Apple announce new innovations...</p>
-        <p>⭐ SpaceX successfully launches new Starship...</p>
-    </div>
-</section>
+      <div class="small" style="margin-top:8px">Current Level</div>
+      <div id="levelDashboard" style="font-size:22px;font-weight:600">1
+  </section>
 
-<!-- ALARM -->
-<section id="alarm">
+  <!-- ALARM -->
+  <section id="alarm" class="section hidden">
     <h2>Alarm Clock</h2>
-    <div class="alarm-box">
-        <label>Select Date & Time:</label>
-        <input type="datetime-local" id="alarmTime"><br><br>
-        <button onclick="setAlarm()">Set Alarm</button>
+    <div class="card" style="margin-top:16px">
+      <label class="small">Select Date & Time</label>
+      <input type="datetime-local" id="alarmTime" class="input" />
+
+      <label class="small" style="margin-top:12px">Select Alarm Tone</label>
+      <select id="alarmTone" class="input">
+        <option value="tone1">Soft Chime</option>
+        <option value="tone2">Morning Bell</option>
+        <option value="tone3">Digital Beep</option>
+      </select>
+
+      <button class="btn" style="margin-top:14px" onclick="setAlarm()">Set Alarm</button>
+      <div id="alarmStatus" class="small" style="margin-top:10px;color:var(--accent1)">No alarm set</div>
     </div>
-</section>
+  </section>
 
-<!-- CHATBOT -->
-<section id="chatbot">
-    <h2>AI Chatbot</h2>
-    <div id="chatbot_box"></div>
-    
-    <input id="chatInput" type="text" placeholder="Ask something..." style="width:300px;padding:10px;border-radius:5px;">
-    <button onclick="sendChat()">Send</button>
-</section>
+  <!-- AI CHATBOT -->
+  <section id="chat" class="section hidden">
+    <h2>AI Chat Assistant</h2>
+    <div class="card" style="margin-top:14px">
+      <div id="chatBox" style="height:260px;overflow-y:auto;padding-right:6px" class="small">
+        <div><b>AI:</b> Hello! Ask me anything…</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <input id="chatInput" class="input" placeholder="Ask something…" />
+        <button class="btn" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </section>
 
-<script>
-/* TO-DO FUNCTION */
-function addTask() {
-    let input = document.getElementById("todoInput");
-    if(input.value.trim() === "") return;
+  <!-- MUSIC -->
+  <section id="music" class="section hidden">
+    <h2>Music Hub</h2>
+    <div class="small">All songs open from YouTube — no copyright issues.</div>
 
-    let li = document.createElement("li");
-    li.textContent = input.value + " ✔ Reward Earned!";
-    li.style.cursor = "pointer";
-    li.style.margin = "10px 0";
+    <div class="cards" style="margin-top:18px">
 
-    li.onclick = () => li.style.textDecoration = "line-through";
+      <div class="card">
+        <h3>Hindi</h3>
+        <a href="https://www.youtube.com/watch?v=kXYiU_JCYtU" target="_blank" class="small">Bollywood Mix</a><br>
+        <a href="https://www.youtube.com/watch?v=Ds9MTvxnUe0" target="_blank" class="small">Lo-Fi Hindi</a>
+      </div>
 
-    document.getElementById("todoList").appendChild(li);
-    input.value = "";
-}
+      <div class="card">
+        <h3>Marathi</h3>
+        <a href="https://www.youtube.com/watch?v=wqUXxFe9qr8" target="_blank" class="small">
+<!-- ---------------------- PART D : MUSIC + TECH NEWS + FOOTER ---------------------- -->
 
-/* SIMPLE CHATBOT */
-function sendChat() {
-    let box = document.getElementById("chatbot_box");
-    let input = document.getElementById("chatInput").value;
+<!-- ⭐ MUSIC LIBRARY SECTION -->
+<section id="music" class="section">
+    <h2>🎵 Music Library (All Languages)</h2>
+    <p>Select and enjoy curated playlists from YouTube.</p>
 
-    if(!input.trim()) return;
-    box.innerHTML += `<p><b>You:</b> ${input}</p>`;
-
-    // Simple AI reply (not GPT)
-    let reply = "I am here to help! Try asking about tasks, productivity or tips!";
-    box.innerHTML += `<p><b>AI:</b> ${reply}</p>`;
-
-    document.getElementById("chatInput").value = "";
-}
-
-/* ALARM FUNCTION */
-let alarmTimeout;
-
-function setAlarm() {
-    let time = document.getElementById("alarmTime").value;
-    if(!time) return alert("Select a valid time");
-
-    let alarmTime = new Date(time).getTime();
-    let now = new Date().getTime();
-    let diff = alarmTime - now;
-
-    if(diff < 0) return alert("Time already passed!");
-
-    alarmTimeout = setTimeout(() => {
-        alert("⏰ Alarm Ringing!");
-        let audio = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
-        audio.play();
-    }, diff);
-
-    alert("Alarm Set Successfully!");
-}
-</script>
-
-</body>
-</html>
+    <div class="music-grid">
+        <a class="music-card" href="https://www.youtube.com/playlist?list=PLUV3QjGZfR8w_8ZrV8L7wYhT5R5vTUYbR" target="_blank">
