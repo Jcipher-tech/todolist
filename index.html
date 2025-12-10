@@ -1,415 +1,788 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Advanced To-Do Universe</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DesoStyle — ToDo Universe</title>
+
+<!-- Unique font: Space Grotesk -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-/* -----------------------------------------------------
-   GLOBAL STYLES
------------------------------------------------------ */
-body {
-    margin: 0;
-    background: #020614;
-    color: white;
-    font-family: Arial, sans-serif;
-    overflow-x: hidden;
+:root{
+  --bg1:#020614; --bg2:#03192a;
+  --accent1:#06b6d4; --accent2:#10b981; --muted:#9aa3b2;
 }
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh;
+  font-family:"Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color:#e6eef8;
+  background: linear-gradient(180deg,var(--bg1),var(--bg2));
+  -webkit-font-smoothing:antialiased;
+}
+/* NAV */
+nav{
+  position:fixed; top:0; left:0; right:0; height:64px;
+  display:flex; align-items:center; gap:12px; padding:8px 20px;
+  background:linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25));
+  backdrop-filter: blur(6px);
+  z-index:999;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(90deg,var(--accent1),var(--accent2));box-shadow:0 8px 28px rgba(16,185,129,0.12)}
+.navlinks{display:flex;gap:8px;margin-left:8px}
+.navlinks button{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--accent1);padding:8px 12px;border-radius:10px;cursor:pointer}
+.navlinks button.active{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#001}
 
-nav {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    padding: 15px;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(6px);
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    z-index: 100;
-}
+/* container & sections */
+.container{max-width:1100px;margin:88px auto;padding:20px}
+.section{display:none}
+.section.active{display:block}
+.header-hero{display:flex;gap:24px;align-items:center;flex-wrap:wrap;padding:28px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.03);box-shadow:0 18px 40px rgba(6,182,212,0.04)}
 
-nav button {
-    background: transparent;
-    border: 1px solid cyan;
-    padding: 10px 18px;
-    color: cyan;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: .3s;
+/* floating ribbon */
+.ribbon {
+  position:fixed; right:6%; top:18%;
+  width:300px;height:80px;border-radius:40px;
+  background:linear-gradient(90deg, rgba(6,182,212,0.32), rgba(16,185,129,0.28));
+  filter: blur(12px);
+  animation: ribbonWave 8s ease-in-out infinite;
+  z-index:0; pointer-events:none;
 }
+@keyframes ribbonWave{0%{transform:rotate(-6deg) translateY(0)}50%{transform:rotate(6deg) translateY(-30px)}100%{transform:rotate(-6deg) translateY(0)}}
 
-nav button:hover {
-    background: cyan;
-    color: black;
-}
+/* hero text */
+.h-title{font-size:38px;margin:0;color:var(--accent1); text-shadow:0 6px 40px rgba(6,182,212,0.08)}
+.h-sub{margin-top:6px;color:var(--muted)}
 
-section {
-    display: none;
-    padding: 120px 40px;
-}
+/* cards */
+.cards{display:flex;gap:16px;margin-top:22px;flex-wrap:wrap}
+.card{flex:0 1 260px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 12px 30px rgba(0,0,0,0.5)}
+.card h3{margin:0 0 8px 0;color:#e6fdf7}
 
-.active {
-    display: block;
-}
+/* buttons & forms */
+.btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));border:none;color:#001;padding:10px 14px;border-radius:10px;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+.input, textarea, select {padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;width:100%}
 
-/* -----------------------------------------------------
-   FLOATING RIBBON
------------------------------------------------------ */
-.floating-ribbon {
-    position: absolute;
-    right: 10%;
-    top: 22%;
-    width: 260px;
-    height: 80px;
-    background: linear-gradient(90deg, rgba(0,255,255,0.5), rgba(0,255,100,0.4));
-    filter: blur(15px);
-    border-radius: 40px;
-    animation: ribbonWave 7s ease-in-out infinite;
-    opacity: 0.45;
-}
+/* todo list */
+.todo-list{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.todo-item{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02)}
+.todo-item .meta{font-size:13px;color:var(--muted)}
 
-@keyframes ribbonWave {
-    0%   { transform: rotate(-5deg) translateY(0); }
-    50%  { transform: rotate(5deg) translateY(-25px); }
-    100% { transform: rotate(-5deg) translateY(0); }
-}
+/* small util */
+.small{font-size:13px;color:var(--muted)}
+.right{margin-left:auto}
+.hidden{display:none}
 
-/* -----------------------------------------------------
-   HOME PAGE CARDS
------------------------------------------------------ */
-.home-card {
-    background: rgba(255,255,255,0.05);
-    padding: 25px;
-    border-radius: 22px;
-    width: 260px;
-    text-align: center;
-    border: 1px solid cyan;
-    box-shadow: 0 0 15px rgba(0,255,255,0.2);
-    transition: 0.3s;
-}
-.home-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 0 25px cyan;
-}
+/* music player */
+.player{display:flex;gap:8px;align-items:center;margin-top:8px}
+.playlist{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 
-@keyframes fadeIn {
-    from { opacity:0; transform:translateY(40px); }
-    to { opacity:1; transform:translateY(0); }
-}
-@keyframes glowText {
-    0%,100% { text-shadow:0 0 10px cyan; }
-    50% { text-shadow:0 0 25px #00ffae; }
-}
+/* media grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:12px}
 
-/* -----------------------------------------------------
-   BUTTONS
------------------------------------------------------ */
-.action {
-    background: cyan;
-    border: none;
-    color: black;
-    padding: 15px 30px;
-    border-radius: 10px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: .3s;
-}
+/* tech news */
+.news-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 
-.action:hover {
-    background: #00ffaa;
-}
+/* profile & linkedin */
+.profile-row{display:flex;gap:12px;align-items:center}
 
-/* -----------------------------------------------------
-   CHATBOT BOX
------------------------------------------------------ */
-.chat-box {
-    background: rgba(255,255,255,0.05);
-    padding: 25px;
-    width: 70%;
-    border-radius: 12px;
-    border: 1px solid cyan;
-    margin-top: 20px;
-}
-
-/* -----------------------------------------------------
-   TO-DO LIST
------------------------------------------------------ */
-.todo-box {
-    background: rgba(255,255,255,0.07);
-    padding: 20px;
-    border-radius: 15px;
-    width: 70%;
-    border: 1px solid #00ffaa;
-}
-
-.todo-item {
-    padding: 10px;
-    border-bottom: 1px solid #444;
-    display: flex;
-    justify-content: space-between;
+/* responsive */
+@media (max-width:920px){
+  .header-hero{flex-direction:column;align-items:flex-start}
+  .ribbon{display:none}
+  nav{overflow:auto}
 }
 </style>
-
 </head>
 <body>
 
-<!-- -----------------------------------------------------
-     NAVIGATION
------------------------------------------------------- -->
+<!-- ribbon -->
+<div class="ribbon" aria-hidden="true"></div>
+
+<!-- NAV -->
 <nav>
-    <button onclick="show('home')">Home</button>
-    <button onclick="show('login')">Login</button>
-    <button onclick="show('todo')">To-Do</button>
-    <button onclick="show('dashboard')">Dashboard</button>
-    <button onclick="show('chatbot')">AI Chatbot</button>
-    <button onclick="show('alarm')">Alarm</button>
+  <div class="brand" style="gap:10px">
+    <div class="logo" aria-hidden="true"></div>
+    <div style="display:flex;flex-direction:column;line-height:1">
+      <strong style="font-size:14px">DesoStyle</strong>
+      <span class="small">Premium To-Do Universe</span>
+    </div>
+  </div>
+
+  <div style="margin-left:14px" class="navlinks" id="navlinks">
+    <button data-target="home" class="active">Home</button>
+    <button data-target="todo">To-Do</button>
+    <button data-target="dashboard">Dashboard</button>
+    <button data-target="alarm">Alarm</button>
+    <button data-target="chat">AI Chat</button>
+    <button data-target="music">Music</button>
+    <button data-target="news">Tech News</button>
+    <button data-target="connect">Connect</button>
+    <button data-target="media">Inspire</button>
+    <button data-target="profile">Profile</button>
+  </div>
 </nav>
 
-<!-- -----------------------------------------------------
-     HOME PAGE
------------------------------------------------------- -->
-<section id="home" class="active">
+<div class="container">
 
-<div class="floating-ribbon"></div>
+  <!-- HOME -->
+  <section id="home" class="section active">
+    <div class="header-hero">
+      <div style="flex:1;z-index:2">
+        <h1 class="h-title">Plan smarter. Finish faster. Get rewarded.</h1>
+        <div class="h-sub">Neon-blue premium theme with AI, alarms, music, LinkedIn connect and a community feed.</div>
 
-<div style="
-        text-align:center;
-        margin-top:120px;
-        padding:40px;
-        background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(0,255,100,0.15));
-        border-radius:30px;
-        box-shadow:0 0 40px rgba(0,255,255,0.4);
-        animation: fadeIn 2s ease;
-    ">
-    <h1 style="font-size:55px; margin-bottom:10px; color:#00f7ff; text-shadow:0 0 20px cyan;">
-        Welcome to Your Productivity Universe 🌌
-    </h1>
+        <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="navigate('todo')">Open To-Do</button>
+          <button class="btn" onclick="navigate('chat')">Ask AI</button>
+          <button class="btn ghost" onclick="navigate('music')">Play Music</button>
+        </div>
 
-    <p style="font-size:22px; opacity:0.8; animation: glowText 3s infinite;">
-        Plan Smarter • Work Faster • Grow Consistently
-    </p>
+        <div class="cards" aria-hidden="false">
+          <div class="card">
+            <h3>Smart Tasks</h3>
+            <div class="small">Subtasks, priorities, completion rewards.</div>
+          </div>
+          <div class="card">
+            <h3>AI Assistant</h3>
+            <div class="small">Generate tasks, explain code & more.</div>
+          </div>
+          <div class="card">
+            <h3>Community</h3>
+            <div class="small">Share photos & videos for inspiration.</div>
+          </div>
+        </div>
+      </div>
 
-    <div style="margin-top:40px;">
-        <button class="action" onclick="show('todo')">Start Tasks</button>
-        <button class="action" onclick="show('dashboard')">See Progress</button>
-        <button class="action" onclick="show('chatbot')">Ask AI</button>
+      <div style="width:360px;z-index:2">
+        <div class="card">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div style="width:64px;height:64px;border-radius:12px;background:linear-gradient(90deg,var(--accent1),var(--accent2));display:grid;place-items:center;font-weight:700">XP</div>
+            <div>
+              <div class="small">Total XP</div>
+              <div id="xpTotal" style="font-weight:700;font-size:20px">0</div>
+              <div class="small">Level <span id="xpLevel">1</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:10px" class="small">Daily tip</div>
+          <div id="dailyTip" style="margin-top:6px;font-weight:600">Start with the toughest task first.</div>
+        </div>
+      </div>
     </div>
-</div>
+  </section>
 
-<div style="display:flex; justify-content:center; margin-top:60px; gap:20px;">
-    <div class="home-card">
-        <h2>✔ Smart To-Do</h2>
-        <p>Gamified rewards & easy tracking.</p>
+  <!-- TODO -->
+  <section id="todo" class="section">
+    <h2>Work / To-Do</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:320px">
+        <div style="display:flex;gap:8px">
+          <input id="newTaskTitle" class="input" placeholder="Task title"/>
+          <select id="newTaskPriority" class="input" style="width:160px">
+            <option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option>
+          </select>
+          <button class="btn" onclick="addTask()">Add</button>
+        </div>
+
+        <div style="margin-top:12px" class="todo-list" id="taskList"></div>
+      </div>
+
+      <div style="width:320px">
+        <div class="card">
+          <h3>Rewards & Progress</h3>
+          <div class="small">Complete tasks to gain XP and badges.</div>
+          <div style="margin-top:12px">
+            <div>XP: <strong id="uiXp">0</strong></div>
+            <div style="margin-top:6px">Level: <strong id="uiLevel">1</strong></div>
+            <div style="margin-top:8px" id="badgesArea"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Quick Actions</h3>
+          <button class="btn ghost" onclick="markAllDone()">Mark all done</button>
+          <button class="btn ghost" onclick="clearCompleted()">Clear completed</button>
+        </div>
+      </div>
     </div>
-    <div class="home-card">
-        <h2>🤖 AI Chat Assistant</h2>
-        <p>Ask anything instantly.</p>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="section">
+    <h2>Dashboard</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div class="card" style="flex:1">
+        <h3>Weekly Progress</h3>
+        <div class="small">Completed tasks this week: <strong id="statCompleted">0</strong></div>
+      </div>
+      <div class="card" style="width:320px">
+        <h3>Streak</h3>
+        <div class="small">Current streak: <strong id="streak">0</strong> days</div>
+      </div>
     </div>
-    <div class="home-card">
-        <h2>⏰ Smart Alarm</h2>
-        <p>Custom tunes & reminders.</p>
+  </section>
+
+  <!-- ALARM -->
+  <section id="alarm" class="section">
+    <h2>Alarm Clock</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:320px" class="card">
+        <label>Date</label>
+        <input id="alarmDate" type="date" class="input"/>
+        <label style="margin-top:8px">Time</label>
+        <input id="alarmTime" type="time" class="input"/>
+        <label style="margin-top:8px">Music</label>
+        <select id="alarmMusic" class="input">
+          <!-- options populated by JS -->
+        </select>
+
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn" onclick="setAlarm()">Set Alarm</button>
+          <button class="btn ghost" onclick="stopAllAlarms()">Stop All</button>
+        </div>
+
+        <div style="margin-top:12px" id="alarmsList"></div>
+      </div>
+
+      <div style="width:320px" class="card">
+        <h3>Mini Player</h3>
+        <div id="playerInfo" class="small">No track playing</div>
+        <div class="player">
+          <audio id="audioPlayer" controls style="width:100%"></audio>
+        </div>
+        <div style="margin-top:8px" class="playlist" id="miniPlaylist"></div>
+      </div>
     </div>
+  </section>
+
+  <!-- AI Chat -->
+  <section id="chat" class="section">
+    <h2>AI Chatbot</h2>
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="aiInput" class="input" placeholder="Ask to generate tasks, explain code, or give tips" />
+        <button class="btn" onclick="askAI()">Ask</button>
+      </div>
+      <div id="aiReply" style="margin-top:12px;white-space:pre-wrap"></div>
+    </div>
+  </section>
+
+  <!-- MUSIC -->
+  <section id="music" class="section">
+    <h2>Music — Play While You Work</h2>
+    <div class="card">
+      <div class="small">Click a track to preview it in the mini player (right-side player)</div>
+      <div style="margin-top:12px" id="musicLists"></div>
+    </div>
+  </section>
+
+  <!-- TECH NEWS -->
+  <section id="news" class="section">
+    <h2>Tech News</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div class="card" style="flex:1">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn" onclick="fetchTechNews()">Refresh News</button>
+          <div class="small">Last update: <span id="newsUpdated">—</span></div>
+        </div>
+        <div class="news-list" id="newsList">
+          <div class="small muted">No news yet — click Refresh</div>
+        </div>
+      </div>
+      <div class="card" style="width:320px">
+        <h3>Sources</h3>
+        <div class="small">TechCrunch, The Verge, Wired (via RSS→JSON). For production use server-side fetch for reliability.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONNECT / LINKEDIN -->
+  <section id="connect" class="section">
+    <h2>Connect — LinkedIn & Discover</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1" class="card">
+        <h3>Your LinkedIn</h3>
+        <div class="small">Add your LinkedIn profile (public link)</div>
+        <div style="margin-top:8px" class="profile-row">
+          <input id="linkedinUrl" class="input" placeholder="https://www.linkedin.com/in/yourname" />
+          <button class="btn" onclick="saveLinkedIn()">Save</button>
+        </div>
+        <div style="margin-top:8px" class="small">Your saved LinkedIn: <a id="savedLinkedIn" href="#" target="_blank">—</a></div>
+      </div>
+
+      <div style="width:380px" class="card">
+        <h3>Discover People</h3>
+        <div class="small">Opt-in directory of members</div>
+        <div id="peopleList" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEDIA / INSPIRE -->
+  <section id="media" class="section">
+    <h2>Inspire — Upload Photos / Videos</h2>
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="postFile" type="file" accept="image/*,video/*" />
+        <input id="postCaption" class="input" placeholder="Caption (optional)" style="width:40%"/>
+        <button class="btn" onclick="postMedia()">Post</button>
+      </div>
+
+      <div class="grid" id="mediaGrid"></div>
+    </div>
+  </section>
+
+  <!-- PROFILE -->
+  <section id="profile" class="section">
+    <h2>Your Profile</h2>
+    <div class="card">
+      <div><strong>Name:</strong> <span id="profileName">Guest</span></div>
+      <div class="small" style="margin-top:6px"><strong>LinkedIn:</strong> <a id="profileLinkedIn" href="#" target="_blank">—</a></div>
+      <div style="margin-top:12px"><button class="btn ghost" onclick="resetLocal()">Reset Local Data</button></div>
+    </div>
+  </section>
+
 </div>
 
-</section>
-
-<!-- -----------------------------------------------------
-     LOGIN PAGE (UI Only)
------------------------------------------------------- -->
-<section id="login">
-<h1>Login</h1>
-<p>Enter your email to continue</p>
-
-<input type="email" placeholder="yourname@gmail.com" style="
-    width:300px; padding:12px; border-radius:10px; border:none; margin-bottom:20px;
-">
-<br>
-<button class="action" onclick="alert('Login feature requires backend — UI only working.')">
-Continue
-</button>
-</section>
-
-<!-- -----------------------------------------------------
-     TO-DO LIST
------------------------------------------------------- -->
-<section id="todo">
-<h1>Your Tasks</h1>
-
-<div class="todo-box">
-    <input id="taskInput" placeholder="Enter new task..." style="padding:10px; width:60%; border-radius:10px;">
-    <button class="action" onclick="addTask()">Add</button>
-
-    <div id="taskList" style="margin-top:20px;"></div>
-</div>
-</section>
-
-<!-- -----------------------------------------------------
-     DASHBOARD
------------------------------------------------------- -->
-<section id="dashboard">
-<h1>Your Progress</h1>
-<p>Total tasks completed: <span id="completeCount">0</span></p>
-<p>Total tasks pending: <span id="pendingCount">0</span></p>
-</section>
-
-<!-- -----------------------------------------------------
-     AI CHATBOT
------------------------------------------------------- -->
-<section id="chatbot">
-<h1>AI Chatbot</h1>
-
-<div class="chat-box">
-    <input id="chatInput" placeholder="Ask something..." 
-    style="padding:10px; width:70%; border-radius:10px;">
-    <button class="action" onclick="aiReply()">Send</button>
-
-    <p id="chatReply" style="margin-top:20px; white-space:pre-wrap;"></p>
-</div>
-</section>
-
-<!-- -----------------------------------------------------
-     ALARM CLOCK
------------------------------------------------------- -->
-<section id="alarm">
-<h1>Smart Alarm</h1>
-
-<div class="chat-box">
-    <label>Date:</label><br>
-    <input id="alarmDate" type="date" style="padding:10px; border-radius:10px;"><br><br>
-
-    <label>Time:</label><br>
-    <input id="alarmTime" type="time" style="padding:10px; border-radius:10px;"><br><br>
-
-    <label>Music:</label><br>
-    <select id="alarmSound" style="padding:10px; border-radius:10px;">
-        <option value="eng">English Beat</option>
-        <option value="hin">Hindi Calm Tune</option>
-        <option value="mar">Marathi Song</option>
-    </select><br><br>
-
-    <button class="action" onclick="setAlarm()">Set Alarm</button>
-
-    <p id="alarmStatus"></p>
-</div>
-</section>
-
-<!-- -----------------------------------------------------
-     JAVASCRIPT FUNCTIONS
------------------------------------------------------- -->
 <script>
-function show(id){
-    document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+/* ============================
+   Single-file app logic
+   - Local-first; optionally you can wire Firestore or serverless endpoints
+   ============================ */
+
+/* NAVIGATION */
+document.querySelectorAll('.navlinks button').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    document.querySelectorAll('.navlinks button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    showSection(btn.dataset.target);
+  });
+});
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
 }
+function navigate(id){ document.querySelector(`.navlinks button[data-target="${id}"]`).click(); }
+
+/* APP STATE (local) */
+const APP = {
+  tasks: JSON.parse(localStorage.getItem('ds_tasks') || '[]'),
+  xp: parseInt(localStorage.getItem('ds_xp')||'0',10),
+  people: JSON.parse(localStorage.getItem('ds_people') || '[]'),
+  media: JSON.parse(localStorage.getItem('ds_media') || '[]'),
+  linkedin: localStorage.getItem('ds_linkedin') || ''
+};
+
+/* INIT UI */
+function init(){
+  renderTasks();
+  renderXP();
+  renderPeople();
+  renderMedia();
+  populateMusic();
+  renderSavedLinkedIn();
+  updateDailyTip();
+}
+init();
 
 /* -----------------------------
-   TO-DO LIST LOGIC
------------------------------ */
-let completed = 0, pending = 0;
-
+   TASKS + REWARDS
+------------------------------*/
 function addTask(){
-    const input = document.getElementById("taskInput");
-    if(!input.value.trim()) return;
+  const title = document.getElementById('newTaskTitle').value.trim();
+  const priority = document.getElementById('newTaskPriority').value;
+  if(!title) { alert('Enter a task'); return; }
+  const t = { id: 't_'+Date.now(), title, priority, createdAt: new Date().toISOString(), completed:false };
+  APP.tasks.push(t);
+  saveTasks(); renderTasks();
+  document.getElementById('newTaskTitle').value = '';
+}
 
-    pending++;
-
-    const div = document.createElement("div");
-    div.className = "todo-item";
+function renderTasks(){
+  const container = document.getElementById('taskList');
+  container.innerHTML = '';
+  if(!APP.tasks.length) { container.innerHTML = '<div class="small muted">No tasks yet</div>'; return; }
+  APP.tasks.slice().reverse().forEach(t=>{
+    const div = document.createElement('div'); div.className='todo-item';
     div.innerHTML = `
-        ${input.value}
-        <button onclick="completeTask(this)" style="background:green; border:none; padding:6px; border-radius:8px;">Done</button>
+      <div>
+        <div style="font-weight:700">${escape(t.title)}</div>
+        <div class="meta small muted">${t.priority} • ${new Date(t.createdAt).toLocaleString()}</div>
+      </div>
+      <div class="right">
+        <button class="btn ghost" onclick="toggleComplete('${t.id}')">${t.completed ? 'Undo' : 'Complete'}</button>
+        <button class="btn ghost" onclick="deleteTask('${t.id}')">Delete</button>
+      </div>
     `;
-
-    document.getElementById("taskList").appendChild(div);
-    input.value = "";
-
-    updateCounts();
+    if(t.completed) div.style.opacity = '0.6';
+    container.appendChild(div);
+  });
 }
-
-function completeTask(btn){
-    btn.parentElement.remove();
-    completed++;
-    pending--;
-    updateCounts();
+function toggleComplete(id){
+  const t = APP.tasks.find(x=>x.id===id); if(!t) return;
+  t.completed = !t.completed;
+  if(t.completed){ awardXP(15); showConfetti(); }
+  saveTasks(); renderTasks(); renderXP();
 }
+function deleteTask(id){
+  APP.tasks = APP.tasks.filter(x=>x.id!==id);
+  saveTasks(); renderTasks(); renderXP();
+}
+function markAllDone(){ APP.tasks.forEach(t=>t.completed=true); awardXP(20); saveTasks(); renderTasks(); renderXP(); }
+function clearCompleted(){ APP.tasks = APP.tasks.filter(t=>!t.completed); saveTasks(); renderTasks(); renderXP(); }
 
-function updateCounts(){
-    document.getElementById("completeCount").innerText = completed;
-    document.getElementById("pendingCount").innerText = pending;
+function saveTasks(){ localStorage.setItem('ds_tasks', JSON.stringify(APP.tasks)); }
+
+/* -----------------------------
+   XP & badges
+------------------------------*/
+function awardXP(n){ APP.xp = (APP.xp||0) + n; localStorage.setItem('ds_xp', APP.xp); renderXP(); }
+function renderXP(){
+  document.getElementById('uiXp').innerText = APP.xp || 0;
+  document.getElementById('uiLevel').innerText = Math.floor((APP.xp||0)/100) + 1;
+  document.getElementById('xpTotal').innerText = APP.xp || 0;
+  document.getElementById('xpLevel').innerText = Math.floor((APP.xp||0)/100) + 1;
 }
 
 /* -----------------------------
-   AI CHATBOT (REAL API)
------------------------------ */
-async function aiReply(){
-    const input = document.getElementById("chatInput").value;
+   Simple confetti
+------------------------------*/
+function showConfetti(){
+  const n = 30;
+  for(let i=0;i<n;i++){
+    const el = document.createElement('div');
+    el.style.position='fixed'; el.style.left = (50+Math.random()*30-15)+'%';
+    el.style.top = (20+Math.random()*30)+'%';
+    el.style.width='10px'; el.style.height='14px'; el.style.background = randomColor();
+    el.style.opacity='0.95'; el.style.transform = 'rotate('+Math.random()*180+'deg)';
+    el.style.borderRadius='2px'; el.style.zIndex=9999; document.body.appendChild(el);
+    setTimeout(()=>{ el.style.transform += ' translateY(300px)'; el.style.opacity='0'; }, 50);
+    setTimeout(()=>el.remove(), 1500);
+  }
+}
+function randomColor(){ const cs = ['#06b6d4','#10b981','#7c3aed','#ffb86b','#ff6b6b']; return cs[Math.floor(Math.random()*cs.length)]; }
 
-    if(!input.trim()) return;
+/* -----------------------------
+   PEOPLE / LINKEDIN
+------------------------------*/
+function saveLinkedIn(){
+  const url = document.getElementById('linkedinUrl').value.trim();
+  if(url && !/^https?:\\/\\//i.test(url)){ alert('Enter full url including https://'); return; }
+  APP.linkedin = url || '';
+  localStorage.setItem('ds_linkedin', APP.linkedin);
+  renderSavedLinkedIn();
+  toast('LinkedIn saved');
+}
+function renderSavedLinkedIn(){
+  const el = document.getElementById('savedLinkedIn');
+  if(APP.linkedin){ el.textContent = APP.linkedin; el.href = APP.linkedin; document.getElementById('profileLinkedIn').href = APP.linkedin; document.getElementById('profileLinkedIn').textContent = APP.linkedin; }
+  else { el.textContent = '—'; el.removeAttribute('href'); document.getElementById('profileLinkedIn').textContent = '—'; document.getElementById('profileLinkedIn').removeAttribute('href'); }
+}
+// sample people directory (opt-in)
+if(APP.people.length===0){
+  APP.people = [
+    {id:'p1', name:'Asha Patel', role:'Frontend Dev', linkedin:'https://www.linkedin.com', tags:['React','UI']},
+    {id:'p2', name:'Rahul Singh', role:'Backend Dev', linkedin:'https://www.linkedin.com', tags:['Node','DB']}
+  ];
+  localStorage.setItem('ds_people', JSON.stringify(APP.people));
+}
+function renderPeople(){
+  const out = document.getElementById('peopleList'); out.innerHTML = '';
+  APP.people.forEach(p=>{
+    const d = document.createElement('div'); d.className='todo-item';
+    d.innerHTML = `<div><div style="font-weight:700">${escape(p.name)}</div><div class="small muted">${escape(p.role)} • ${escape((p.tags||[]).join(', '))}</div></div>
+      <div class="right"><a class="btn ghost" href="${p.linkedin}" target="_blank">LinkedIn</a></div>`;
+    out.appendChild(d);
+  });
+}
 
-    document.getElementById("chatReply").innerText = "Thinking...";
+/* -----------------------------
+   MEDIA POSTS
+------------------------------*/
+function postMedia(){
+  const f = document.getElementById('postFile').files[0];
+  const cap = document.getElementById('postCaption').value.trim();
+  if(!f){ alert('Choose a file'); return; }
+  const reader = new FileReader();
+  reader.onload = ()=> {
+    const obj = { id:'m_'+Date.now(), src: reader.result, caption: cap, type: f.type.startsWith('video') ? 'video':'image' };
+    APP.media.push(obj); localStorage.setItem('ds_media', JSON.stringify(APP.media)); renderMedia(); document.getElementById('postCaption').value=''; document.getElementById('postFile').value='';
+    toast('Posted to Inspire feed');
+  };
+  reader.readAsDataURL(f);
+}
+function renderMedia(){
+  const g = document.getElementById('mediaGrid'); g.innerHTML = '';
+  if(!APP.media.length) { g.innerHTML = '<div class="small muted">No posts yet</div>'; return; }
+  APP.media.slice().reverse().forEach(m=>{
+    const c = document.createElement('div'); c.style.padding='10px'; c.style.borderRadius='10px'; c.style.background='rgba(255,255,255,0.02)';
+    if(m.type==='image') c.innerHTML = `<img src="${m.src}" style="width:100%;border-radius:8px"/><div style="margin-top:6px">${escape(m.caption)}</div>`;
+    else c.innerHTML = `<video src="${m.src}" controls style="width:100%;border-radius:8px"></video><div style="margin-top:6px">${escape(m.caption)}</div>`;
+    g.appendChild(c);
+  });
+}
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization":"Bearer pk-oai-browser-example-key"
-        },
-        body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{role:"user", content:input}]
-        })
+/* -----------------------------
+   MUSIC & PLAYER
+------------------------------*/
+const PLAYLISTS = {
+  english: [
+    {id:'eng1', title:'Ambient Focus', src:'https://cdn.pixabay.com/download/audio/2021/09/13/audio_9e0a61f5ab.mp3?filename=ambient-110272.mp3'},
+    {id:'eng2', title:'Lo-Fi Study 1', src:'https://cdn.pixabay.com/download/audio/2022/03/15/audio_d3e6b5a7ea.mp3?filename=lofi-12345.mp3'}
+  ],
+  hindi: [
+    {id:'hin1', title:'Hindi Calm', src:'https://cdn.pixabay.com/download/audio/2023/01/01/audio_3ef7ea0dad.mp3?filename=indian-music-132546.mp3'}
+  ],
+  marathi: [
+    {id:'mar1', title:'Marathi Folk', src:'https://cdn.pixabay.com/download/audio/2023/02/15/audio_bff763db30.mp3?filename=folk-instrumental-140524.mp3'}
+  ],
+  tamil: [
+    {id:'tam1', title:'Tamil Instrumental', src:'https://cdn.pixabay.com/download/audio/2021/12/21/audio_1b6a2c8f4a.mp3?filename=tamil-instrumental.mp3'}
+  ],
+  telugu: [
+    {id:'tel1', title:'Telugu Soft', src:'https://cdn.pixabay.com/download/audio/2022/08/10/audio_3c6a1f7b4a.mp3?filename=telugu-melody.mp3'}
+  ],
+  punjabi: [
+    {id:'pun1', title:'Punjabi Rhythm', src:'https://cdn.pixabay.com/download/audio/2022/11/30/audio_2d1b4bca6b.mp3?filename=punjabi-beat.mp3'}
+  ],
+  instrumental: [
+    {id:'ins1', title:'Piano Calm', src:'https://cdn.pixabay.com/download/audio/2020/10/16/audio_0f3b74d9a0.mp3?filename=piano-ambient.mp3'}
+  ]
+};
+
+function populateMusic(){
+  const target = document.getElementById('musicLists'); target.innerHTML='';
+  for(const key of Object.keys(PLAYLISTS)){
+    const wrap = document.createElement('div'); wrap.style.marginTop='12px';
+    const h = document.createElement('h4'); h.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+    wrap.appendChild(h);
+    const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.flexWrap='wrap';
+    PLAYLISTS[key].forEach(item=>{
+      const b = document.createElement('button'); b.className='btn ghost'; b.textContent = item.title;
+      b.onclick = ()=> playTrack(item);
+      row.appendChild(b);
     });
-
-    const data = await res.json();
-
-    document.getElementById("chatReply").innerText =
-        data.choices[0].message.content;
+    wrap.appendChild(row); target.appendChild(wrap);
+  }
+  // alarm music select
+  const sel = document.getElementById('alarmMusic'); sel.innerHTML='';
+  for(const k in PLAYLISTS){
+    PLAYLISTS[k].forEach(t=> {
+      const o = document.createElement('option'); o.value = t.src; o.textContent = `${k.toUpperCase()} — ${t.title}`; sel.appendChild(o);
+    });
+  }
+  // mini playlist preview
+  const mini = document.getElementById('miniPlaylist'); mini.innerHTML='';
+  for(const k in PLAYLISTS){
+    PLAYLISTS[k].forEach(t=>{
+      const a = document.createElement('a'); a.href='#'; a.className='btn ghost'; a.textContent = t.title; a.style.fontSize='13px';
+      a.onclick = (e)=>{ e.preventDefault(); playTrack(t); };
+      mini.appendChild(a);
+    });
+  }
+}
+function playTrack(track){
+  const player = document.getElementById('audioPlayer');
+  player.src = track.src;
+  player.play().catch(()=> toast('Playback blocked — interact with page to allow'));
+  document.getElementById('playerInfo').textContent = 'Playing: ' + track.title;
 }
 
 /* -----------------------------
-   ALARM CLOCK
------------------------------ */
+   ALARM (date+time) scheduling
+------------------------------*/
+let scheduledAlarms = [];
 function setAlarm(){
-    const date = document.getElementById("alarmDate").value;
-    const time = document.getElementById("alarmTime").value;
-    const sound = document.getElementById("alarmSound").value;
-
-    if(!date || !time){
-        alert("Select date & time!");
-        return;
-    }
-
-    const alarmTime = new Date(date + " " + time);
-    const now = new Date();
-
-    if(alarmTime <= now){
-        alert("Invalid time!");
-        return;
-    }
-
-    document.getElementById("alarmStatus").innerText = "Alarm set!";
-
-    const music = {
-        eng: "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/FKJ/Oddysee/FKJ_-_05_-_Skyline.mp3",
-        hin: "https://pagalfree.com/musics/128-Dil%20Diyan%20Gallan%20-%20Tiger%20Zinda%20Hai%20128%20Kbps.mp3",
-        mar: "https://raag.fm/files/mp3/128/MKSN/56513/Title%20Track%20-%20Mumbai%20Saga%20128%20Kbps.mp3"
-    };
-
-    const audio = new Audio(music[sound]);
-
-    const check = setInterval(() => {
-        const now = new Date();
-        if(now >= alarmTime){
-            audio.play();
-            document.body.style.background = "red";
-            setTimeout(()=> document.body.style.background="#020614", 3000);
-            clearInterval(check);
-        }
-    }, 1000);
+  const date = document.getElementById('alarmDate').value;
+  const time = document.getElementById('alarmTime').value;
+  const src = document.getElementById('alarmMusic').value;
+  if(!date || !time){ alert('Select date and time'); return; }
+  const target = new Date(date + 'T' + time);
+  if(isNaN(target.getTime())){ alert('Invalid date/time'); return; }
+  if(target <= new Date()){ alert('Choose future time'); return; }
+  const alarm = { id:'a_'+Date.now(), when: target.toISOString(), src };
+  scheduledAlarms.push(alarm);
+  persistAlarms();
+  scheduleAlarm(alarm);
+  renderAlarms();
+  toast('Alarm scheduled for ' + target.toLocaleString());
 }
-</script>
+function scheduleAlarm(alarm){
+  const when = new Date(alarm.when).getTime();
+  const delay = when - Date.now();
+  alarm._timeout = setTimeout(()=>{
+    playAlarm(alarm);
+    // remove one-off alarm
+    scheduledAlarms = scheduledAlarms.filter(a=>a.id!==alarm.id);
+    persistAlarms();
+    renderAlarms();
+  }, delay);
+}
+function playAlarm(alarm){
+  const audio = new Audio(alarm.src);
+  audio.loop = true;
+  audio.play().catch(()=> toast('Unable to autoplay; click to start playback'));
+  // flash UI
+  const prev = document.body.style.background;
+  document.body.style.transition = 'background 0.3s';
+  document.body.style.background = 'linear-gradient(90deg,#ff6b6b,#ffb86b)';
+  setTimeout(()=> document.body.style.background = prev, 4000);
+  // stop after 60s
+  setTimeout(()=> audio.pause(), 60*1000);
+}
+function persistAlarms(){ localStorage.setItem('ds_alarms', JSON.stringify(scheduledAlarms)); }
+function renderAlarms(){
+  const el = document.getElementById('alarmsList'); el.innerHTML = '';
+  if(!scheduledAlarms.length) { el.innerHTML = '<div class="small muted">No alarms</div>'; return; }
+  scheduledAlarms.forEach(a=>{
+    const d = document.createElement('div'); d.className='todo-item'; d.style.alignItems='center';
+    d.innerHTML = `<div><strong>${new Date(a.when).toLocaleString()}</strong><div class="small muted">${a.src.split('/').pop()}</div></div>
+      <div class="right"><button class="btn ghost" onclick="cancelAlarm('${a.id}')">Cancel</button></div>`;
+    el.appendChild(d);
+  });
+}
+function cancelAlarm(id){
+  const a = scheduledAlarms.find(x=>x.id===id);
+  if(a && a._timeout) clearTimeout(a._timeout);
+  scheduledAlarms = scheduledAlarms.filter(x=>x.id!==id);
+  persistAlarms(); renderAlarms(); toast('Alarm canceled');
+}
+function stopAllAlarms(){
+  scheduledAlarms.forEach(a=>{ if(a._timeout) clearTimeout(a._timeout); });
+  scheduledAlarms = [];
+  persistAlarms(); renderAlarms(); toast('Stopped all alarms');
+}
+// restore alarms on load
+(function restoreAlarms(){
+  const raw = localStorage.getItem('ds_alarms');
+  if(!raw) return;
+  try{
+    scheduledAlarms = JSON.parse(raw);
+    scheduledAlarms.forEach(a=> scheduleAlarm(a));
+    renderAlarms();
+  }catch(e){ console.warn('restore alarms failed', e); }
+})();
 
+/* -----------------------------
+   AI CHAT (secure & safe)
+   - Tries serverless '/api/chat' first
+   - If fails, uses localAssistant fallback
+------------------------------*/
+async function askAI(){
+  const q = document.getElementById('aiInput').value.trim();
+  if(!q) return;
+  document.getElementById('aiReply').textContent = 'Thinking...';
+  // Try serverless endpoint if deployed
+  try{
+    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({prompt:q})});
+    if(res.ok){
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content || data?.result || JSON.stringify(data);
+      document.getElementById('aiReply').textContent = text;
+      // If model returned a task list format, optionally add tasks (not automatic)
+      return;
+    }
+  }catch(err){
+    console.warn('Serverless AI not available', err);
+  }
+  // Local fallback assistant
+  const reply = localAssistant(q);
+  document.getElementById('aiReply').textContent = reply;
+}
+function localAssistant(prompt){
+  const s = prompt.toLowerCase();
+  if(s.includes('create') && s.includes('tasks')) {
+    const n = parseInt((s.match(/\\d+/)||['5'])[0] || 5);
+    const tasks = [];
+    for(let i=1;i<=n;i++) tasks.push(`Task ${i}: Study topic ${i}`);
+    return 'Suggested tasks:\\n' + tasks.join('\\n');
+  }
+  if(s.includes('explain')) return 'Short explanation: ' + prompt;
+  if(s.includes('how to') || s.includes('steps')) return 'Step 1: Research. Step 2: Practice. Step 3: Iterate.';
+  return "I couldn't find a server AI. Try phrasing: 'Create 5 tasks to learn React' or 'Explain closures in JS'";
+}
+
+/* -----------------------------
+   TECH NEWS (RSS -> JSON)
+------------------------------*/
+async function fetchTechNews(){
+  const listEl = document.getElementById('newsList');
+  listEl.innerHTML = '<div class="small muted">Loading news…</div>';
+  // Using rss2json free endpoint (CORS/rate limits may apply). For production, proxy server-side.
+  try{
+    const rss = encodeURIComponent('https://techcrunch.com/feed/');
+    const url = `https://api.rss2json.com/v1/api.json?rss_url=${rss}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('News fetch failed');
+    const j = await res.json();
+    const items = j.items.slice(0,8);
+    listEl.innerHTML = '';
+    items.forEach(it=>{
+      const node = document.createElement('div'); node.className='todo-item';
+      node.innerHTML = `<div><a href="${it.link}" target="_blank" style="color:var(--accent1);font-weight:700">${escape(it.title)}</a><div class="small muted">${new Date(it.pubDate).toLocaleString()}</div></div>`;
+      listEl.appendChild(node);
+    });
+    document.getElementById('newsUpdated').textContent = new Date().toLocaleTimeString();
+  }catch(e){
+    console.warn('news error', e);
+    listEl.innerHTML = '<div class="small muted">News unavailable. For reliable news enable server-side fetch (see README).</div>';
+  }
+}
+
+/* -----------------------------
+   UI helpers, persistence, misc
+------------------------------*/
+function escape(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function toast(msg, t=2200){ const e = document.createElement('div'); e.textContent = msg; e.style.position='fixed'; e.style.right='20px'; e.style.bottom='20px'; e.style.background='linear-gradient(90deg,var(--accent1),var(--accent2))'; e.style.color='#001'; e.style.padding='8px 12px'; e.style.borderRadius='8px'; e.style.boxShadow='0 8px 20px rgba(0,0,0,0.5)'; document.body.appendChild(e); setTimeout(()=>e.remove(), t); }
+function updateDailyTip(){ const tips = ['Start with the hardest task','Use time blocks','Take short breaks','Review tomorrow tasks tonight']; document.getElementById('dailyTip').textContent = tips[(new Date().getDate()) % tips.length]; }
+
+/* -----------------------------
+   Persistence & load
+------------------------------*/
+function persistAll(){
+  localStorage.setItem('ds_tasks', JSON.stringify(APP.tasks));
+  localStorage.setItem('ds_xp', String(APP.xp));
+  localStorage.setItem('ds_people', JSON.stringify(APP.people));
+  localStorage.setItem('ds_media', JSON.stringify(APP.media));
+  localStorage.setItem('ds_linkedin', APP.linkedin || '');
+}
+function saveTasks(){ localStorage.setItem('ds_tasks', JSON.stringify(APP.tasks)); }
+function resetLocal(){ if(confirm('Reset local demo data?')){ localStorage.clear(); location.reload(); } }
+
+/* on unload persist */
+window.addEventListener('beforeunload', persistAll);
+
+/* tests: init counts from storage */
+(function loadFromStorage(){
+  // tasks already in APP.tasks from top
+  renderTasks();
+  renderXP();
+  renderPeople();
+  renderMedia();
+  populateMusic();
+  renderSavedLinkedIn();
+  updateDailyTip();
+})();
+
+/* helper: small UI functions used above */
+function renderSavedLinkedIn(){ const el = document.getElementById('savedLinkedIn'); const v = APP.linkedin || localStorage.getItem('ds_linkedin') || ''; if(v){ el.textContent = v; el.href = v; document.getElementById('profileLinkedIn').textContent = v; document.getElementById('profileLinkedIn').href = v; } else { el.textContent='—'; } }
+function renderPeople(){ const node = document.getElementById('peopleList'); node.innerHTML=''; APP.people.forEach(p=>{ const d = document.createElement('div'); d.className='todo-item'; d.innerHTML = `<div><div style="font-weight:700">${escape(p.name)}</div><div class="small muted">${escape(p.role)} • ${escape((p.tags||[]).join(', '))}</div></div><div class="right"><a class="btn ghost" href="${p.linkedin}" target="_blank">LinkedIn</a></div>`; node.appendChild(d); }); }
+function renderTasks(){ document.getElementById('taskList').innerHTML = ''; if(APP.tasks.length===0) document.getElementById('taskList').innerHTML = '<div class="small muted">No tasks</div>'; APP.tasks.slice().reverse().forEach(t=>{ const d = document.createElement('div'); d.className='todo-item'; d.innerHTML = `<div><div style="font-weight:700">${escape(t.title)}</div><div class="small muted">${escape(t.priority)} • ${new Date(t.createdAt).toLocaleString()}</div></div><div class="right"><button class="btn ghost" onclick="toggleComplete('${t.id}')">${t.completed ? 'Undo' : 'Complete'}</button> <button class="btn ghost" onclick="deleteTask('${t.id}')">Delete</button></div>`; if(t.completed) d.style.opacity='0.6'; document.getElementById('taskList').appendChild(d); }); }
+function renderMedia(){ const g = document.getElementById('mediaGrid'); g.innerHTML=''; if(APP.media.length===0) g.innerHTML='<div class="small muted">No posts</div>'; APP.media.slice().reverse().forEach(m=>{ const c = document.createElement('div'); c.style.padding='8px'; c.style.borderRadius='8px'; c.style.background='rgba(255,255,255,0.02)'; if(m.type==='image') c.innerHTML = `<img src="${m.src}" style="width:100%;border-radius:8px"/><div style="margin-top:6px">${escape(m.caption)}</div>`; else c.innerHTML = `<video src="${m.src}" controls style="width:100%;border-radius:8px"></video><div style="margin-top:6px">${escape(m.caption)}</div>`; g.appendChild(c); }); }
+
+/* small alias used earlier */
+function toggleComplete(id){ const t = APP.tasks.find(x=>x.id===id); if(!t) return; t.completed = !t.completed; if(t.completed) awardXP(15); saveTasks(); renderTasks(); renderXP(); }
+function deleteTask(id){ APP.tasks = APP.tasks.filter(x=>x.id!==id); saveTasks(); renderTasks(); renderXP(); }
+
+/* toast on load */
+setTimeout(()=>updateDailyTip(),200);
+</script>
 </body>
 </html>
